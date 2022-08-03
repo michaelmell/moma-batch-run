@@ -30,6 +30,21 @@ def build_list_of_gl_tiff_file_paths(gl_directory_paths: list):
         gl_tiff_paths.append(tiff_path)
     return gl_tiff_paths
 
+def build_arg_string(arg_dicts):
+    return ' '.join([f'-{key} {arg_dict[key]}' for arg_dict in arg_dicts for key in arg_dict])
+
+def build_list_of_command_line_arguments(config, list_of_gl_paths):
+    position = config['position']
+
+    cmd_args_list = ['']*len(list_of_gl_paths)
+    for pos_ind in position:
+        if 'arg' in position[pos_ind]:
+            arg_dict = position[pos_ind]['arg']
+            for ind, path in enumerate(list_of_gl_paths):
+                pos_string = 'Pos'+ str(pos_ind)
+                if pos_string in path:
+                    cmd_args_list[ind] = build_arg_string(arg_dict)
+    return cmd_args_list
 
 def __main__():
     # Open the file and load the file
@@ -39,9 +54,13 @@ def __main__():
 
     gl_directory_paths = build_list_of_gl_directory_paths(config)
     gl_tiff_paths = build_list_of_gl_tiff_file_paths(gl_directory_paths)
+    cmd_arguments = build_list_of_command_line_arguments(config, gl_directory_paths)
 
     # [print(path) for path in gl_directory_paths]
-    [print(path) for path in gl_tiff_paths]
+    # [print(path) for path in gl_tiff_paths]
+
+    for tiff_path, args in zip(gl_tiff_paths, cmd_arguments):
+        print(f'moma {args} -i {tiff_path}')
 
     # input_path = config['path']
     # for res in os.walk(input_path):
