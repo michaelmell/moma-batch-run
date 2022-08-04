@@ -1,7 +1,10 @@
+#! /usr/bin/env python
+import os
+import argparse
 from glob import glob
+
 import yaml
 from yaml.loader import SafeLoader
-import os
 
 def build_list_of_gl_directory_paths(config):
     input_path = config['path']
@@ -30,37 +33,60 @@ def build_list_of_gl_tiff_file_paths(gl_directory_paths: list):
         gl_tiff_paths.append(tiff_path)
     return gl_tiff_paths
 
-def build_arg_string(arg_dicts):
-    return ' '.join([f'-{key} {arg_dict[key]}' for arg_dict in arg_dicts for key in arg_dict])
+# def build_arg_string(arg_dicts):
+#     return ' '.join([f'-{key} {arg_dict[key]}' for arg_dict in arg_dicts for key in arg_dict])
+
+def build_arg_string(arg_dict):
+    return ' '.join([f'-{key} {arg_dict[key]}' for key in arg_dict])
 
 def build_list_of_command_line_arguments(config, list_of_gl_paths):
     position = config['position']
 
-    cmd_args_list = ['']*len(list_of_gl_paths)
+    cmd_args_dict_list = [{}]*len(list_of_gl_paths)
+    if 'arg' in config:
+        for arg_dict in cmd_args_dict_list:
+            arg_dict.update(config['arg'])
     for pos_ind in position:
         if 'arg' in position[pos_ind]:
             arg_dict = position[pos_ind]['arg']
             for ind, path in enumerate(list_of_gl_paths):
                 pos_string = 'Pos'+ str(pos_ind)
                 if pos_string in path:
-                    cmd_args_list[ind] = build_arg_string(arg_dict)
-    return cmd_args_list
+                    cmd_args_dict_list[ind].update(arg_dict)
+                    # cmd_args_list[ind] = build_arg_string(arg_dict)
+    return cmd_args_dict_list
 
 def __main__():
+    parser = argparse.ArgumentParser()
+    group = parser.add_argument_group('required (mutually exclusive) arguments')
+    mxgroup = group.add_mutually_exclusive_group(required=True)
+    mxgroup.add_argument("-track", "--track", action='store_true',
+                    help="perform headless batch-tracking of GLs")
+    mxgroup.add_argument("-curate", "--curate", action='store_true',
+                    help="perform interactive curation of GLs")
+    mxgroup.add_argument("-export", "--export", action='store_true',
+                    help="perform headless export of tracking results")
+    parser.add_argument("yaml_config_file", type=str,
+                    help="path to YAML file with dataset configuration")
+    args = parser.parse_args()
+
     # Open the file and load the file
-    with open('tracking_config_test_1.yaml') as f:
+    with open(args.yaml_config_file) as f:
         config = yaml.load(f, Loader=SafeLoader)
-        # print(config)
 
     gl_directory_paths = build_list_of_gl_directory_paths(config)
     gl_tiff_paths = build_list_of_gl_tiff_file_paths(gl_directory_paths)
-    cmd_arguments = build_list_of_command_line_arguments(config, gl_directory_paths)
+    cmd_args_dict_list = build_list_of_command_line_arguments(config, gl_directory_paths)
 
     # [print(path) for path in gl_directory_paths]
     # [print(path) for path in gl_tiff_paths]
 
-    for tiff_path, args in zip(gl_tiff_paths, cmd_arguments):
-        print(f'moma {args} -i {tiff_path}')
+    for tiff_path, args_dict in zip(gl_tiff_paths, cmd_args_dict_list):
+        args_string = build_arg_string(args_dict)
+        moma_command = f'moma {args_string} -i {tiff_path}'
+        print(moma_command)
+        os.system(moma_command)
+        # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")
 
     # input_path = config['path']
     # for res in os.walk(input_path):
@@ -68,4 +94,5 @@ def __main__():
     # print("bla1")
     print("Finished.")
 
-__main__()
+if __name__ == "__main__":
+    __main__()
