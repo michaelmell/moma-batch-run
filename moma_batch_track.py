@@ -85,6 +85,11 @@ def __main__():
             analysisName = current_args_dict.pop('analysis', None)
             if not analysisName: raise ArgumentError("Argument 'analysis' is not set for running curation.")
             current_args_dict = {'reload': gl_directory_path, 'analysis': analysisName}  # for running the curation we only need the GL directory path and the name of the analysis
+        elif cmd_args.export:
+            analysisName = current_args_dict.pop('analysis', None)
+            if not analysisName: raise ArgumentError("Argument 'analysis' is not set for running curation.")
+            current_args_dict = {'headless':None, 'reload': gl_directory_path, 'analysis': analysisName}  # for running the curation we only need the GL directory path and the name of the analysis
+            pass
         args_string = build_arg_string(current_args_dict)
         moma_command = f'moma {args_string} -i {tiff_path}'
         print(moma_command)

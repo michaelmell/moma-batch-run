@@ -21,6 +21,15 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args" : ["-curate","tracking_config_test_1.yaml"]
+        },
+        {
+            "name": "export arg test",
+            "type": "python",
+            "request": "launch",
+            "program": "moma_batch_track.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args" : ["-export","tracking_config_test_1.yaml"]
         }
     ]
 }
