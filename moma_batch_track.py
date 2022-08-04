@@ -6,9 +6,29 @@ import os
 import sys
 import argparse
 from glob import glob
+import logging
 
 import yaml
 from yaml.loader import SafeLoader
+
+"""
+This class was taken from here: https://stackoverflow.com/a/39215961
+"""
+class StreamToLogger(object):
+    """
+    Fake file-like stream object that redirects writes to a logger instance.
+    """
+    def __init__(self, logger, level):
+       self.logger = logger
+       self.level = level
+       self.linebuf = ''
+
+    def write(self, buf):
+       for line in buf.rstrip().splitlines():
+          self.logger.log(self.level, line.rstrip())
+
+    def flush(self):
+        pass
 
 def build_list_of_gl_directory_paths(config):
     input_path = config['path']
@@ -18,6 +38,7 @@ def build_list_of_gl_directory_paths(config):
     for pos in position:
         get_gl_paths_for_position(input_path, position, gl_paths, pos)
     return gl_paths
+
 
 """
 This method caluclates the paths to the GL directories.
@@ -96,9 +117,29 @@ def __main__():
                 print("ERROR: Cannot write to the file log-file at: {cmd_args.log}")
                 exit(-1)
 
-    sys.stdout = open('file', 'w')
-    sys.sterr = open('file', 'w')
+    # instructions how to setup the logger to write to terminal can be found here:
+    # https://docs.python.org/3.8/howto/logging-cookbook.html
+    # and
+    # https://stackoverflow.com/a/38394903
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s - %(levelname)s - %(message)s',
+                        filename=log_file,
+                        filemode='a')
+    # define a new Handler to log to console as well
+    console = logging.StreamHandler()
+    # optional, set the logging level
+    console.setLevel(logging.INFO)
+    # set a format which is the same for console use
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    # tell the handler to use this format
+    console.setFormatter(formatter)
+    # add the handler to the root logger
+    logging.getLogger('default').addHandler(console)
+    logger = logging.getLogger('default')
 
+    sys.stdout = StreamToLogger(logger, logging.INFO)
+    sys.stderr = StreamToLogger(logger, logging.ERROR)
+    
     with open(cmd_args.yaml_config_file) as f:
         config = yaml.load(f, Loader=SafeLoader)
 
@@ -106,6 +147,7 @@ def __main__():
     gl_tiff_paths = build_list_of_gl_tiff_file_paths(gl_directory_paths)
     cmd_args_dict_list = build_list_of_command_line_arguments(config, gl_directory_paths)
 
+    print("START BATCH RUN.")
     for tiff_path, gl_directory_path, args_dict in zip(gl_tiff_paths, gl_directory_paths, cmd_args_dict_list):
         current_args_dict = args_dict.copy()
         if cmd_args.track:
@@ -120,16 +162,12 @@ def __main__():
             current_args_dict = {'headless':None, 'reload': gl_directory_path, 'analysis': analysisName}  # for running the curation we only need the GL directory path and the name of the analysis
             pass
         args_string = build_arg_string(current_args_dict)
-        moma_command = f'moma {args_string} -i {tiff_path} 2>&1 | tee {log_file}'
-        print(moma_command)
+        moma_command = f'moma {args_string} -i {tiff_path}'
+        print("RUN MOMA: " + moma_command)
         os.system(moma_command)
-        # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")
-
-    # input_path = config['path']
-    # for res in os.walk(input_path):
-    #     print(res[0])
-    # print("bla1")
-    print("Finished.")
+        # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")  # this would output also MoMA output to the log file:
+        print("FINISHED MOMA.")
+    print("FINISHED BATCH RUN.")
 
 if __name__ == "__main__":
     __main__()
