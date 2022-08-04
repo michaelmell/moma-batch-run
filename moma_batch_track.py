@@ -61,13 +61,28 @@ def build_list_of_gl_tiff_file_paths(gl_directory_paths: list):
 def build_arg_string(arg_dict):
     return ' '.join([f'-{key} {arg_dict[key]}' if arg_dict[key] is not None or '' else f'-{key}' for key in arg_dict])
 
+def add_to_or_update_arg_list(args_to_update: list, new_args: list):
+    for new_arg in new_args:
+        if type(new_arg) is str and new_arg not in args_to_update:
+            args_to_update.append(new_arg)
+        elif type(new_arg) is dict:
+            new_key = list(new_arg.keys())[0]
+            new_val = list(new_arg.values())[0]
+            existing_keys = [list(arg.keys())[0] if type(arg) is dict else None for arg in args_to_update]
+            if new_key in existing_keys:
+                index = existing_keys.index(new_key)
+                args_to_update[index].update({new_key: new_val})
+            else:
+                args_to_update.append({new_key: new_val})
+    return args_to_update
+
 def build_list_of_command_line_arguments(config, list_of_gl_paths):
     position = config['position']
 
-    cmd_args_dict_list = [{}]*len(list_of_gl_paths)
+    cmd_args_dict_list = [list()]*len(list_of_gl_paths)
     if 'arg' in config:
         for arg_dict in cmd_args_dict_list:
-            arg_dict.update(config['arg'])
+            arg_dict = add_to_or_update_arg_list(arg_dict, config['arg'])
     for pos_ind in position:
         if 'arg' in position[pos_ind]:
             arg_dict = position[pos_ind]['arg']
