@@ -34,12 +34,8 @@ def build_list_of_gl_tiff_file_paths(gl_directory_paths: list):
         gl_tiff_paths.append(tiff_path)
     return gl_tiff_paths
 
-# def build_arg_string(arg_dicts):
-#     return ' '.join([f'-{key} {arg_dict[key]}' for arg_dict in arg_dicts for key in arg_dict])
-
 def build_arg_string(arg_dict):
-    args_string = ' '.join([f'-{key} {arg_dict[key]}' for key in arg_dict])
-    return args_string
+    return ' '.join([f'-{key} {arg_dict[key]}' if arg_dict[key] is not None or '' else f'-{key}' for key in arg_dict])
 
 def build_list_of_command_line_arguments(config, list_of_gl_paths):
     position = config['position']
@@ -86,13 +82,13 @@ def __main__():
     for tiff_path, args_dict in zip(gl_tiff_paths, cmd_args_dict_list):
         current_args_dict = args_dict.copy()
         if cmd_args.track:
-            current_args_dict.update({'headless':'', 'track-only':''})
+            current_args_dict.update({'headless':None, 'trackonly':None})
         if cmd_args.track:
             pass
         args_string = build_arg_string(current_args_dict)
         moma_command = f'moma {args_string} -i {tiff_path}'
         print(moma_command)
-        # os.system(moma_command)
+        os.system(moma_command)
         # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")
 
     # input_path = config['path']
