@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+from ctypes import ArgumentError
 import os
 import functools
 import argparse
@@ -76,15 +77,14 @@ def __main__():
     gl_tiff_paths = build_list_of_gl_tiff_file_paths(gl_directory_paths)
     cmd_args_dict_list = build_list_of_command_line_arguments(config, gl_directory_paths)
 
-    # [print(path) for path in gl_directory_paths]
-    # [print(path) for path in gl_tiff_paths]
-
-    for tiff_path, args_dict in zip(gl_tiff_paths, cmd_args_dict_list):
+    for tiff_path, gl_directory_path, args_dict in zip(gl_tiff_paths, gl_directory_paths, cmd_args_dict_list):
         current_args_dict = args_dict.copy()
         if cmd_args.track:
             current_args_dict.update({'headless':None, 'trackonly':None})
-        if cmd_args.track:
-            pass
+        elif cmd_args.curate:
+            analysisName = current_args_dict.pop('analysis', None)
+            if not analysisName: raise ArgumentError("Argument 'analysis' is not set for running curation.")
+            current_args_dict = {'reload': gl_directory_path, 'analysis': analysisName}  # for running the curation we only need the GL directory path and the name of the analysis
         args_string = build_arg_string(current_args_dict)
         moma_command = f'moma {args_string} -i {tiff_path}'
         print(moma_command)
