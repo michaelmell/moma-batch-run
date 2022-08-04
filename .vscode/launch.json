@@ -5,6 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "no argument",
+            "type": "python",
+            "request": "launch",
+            "program": "moma_batch_track.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args" : []
+        },
+        {
             "name": "track arg test",
             "type": "python",
             "request": "launch",
