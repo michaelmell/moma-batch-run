@@ -1,4 +1,3 @@
-file_format: 0.1.0
 path: /media/micha/T7/data_michael_mell/moma_test_data/000_development/feature/20220121-fix-loading-of-curated-datasets/Lis/20211026/20211026__lis__process_positions__output__20211101-013152
 arg:
 - p: '/media/micha/T7/data_michael_mell/moma_test_data/000_development/feature/20220121-fix-loading-of-curated-datasets/Lis/20211026/mm.properties'
