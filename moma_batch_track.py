@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 import os
+import functools
 import argparse
 from glob import glob
 
@@ -37,7 +38,8 @@ def build_list_of_gl_tiff_file_paths(gl_directory_paths: list):
 #     return ' '.join([f'-{key} {arg_dict[key]}' for arg_dict in arg_dicts for key in arg_dict])
 
 def build_arg_string(arg_dict):
-    return ' '.join([f'-{key} {arg_dict[key]}' for key in arg_dict])
+    args_string = ' '.join([f'-{key} {arg_dict[key]}' for key in arg_dict])
+    return args_string
 
 def build_list_of_command_line_arguments(config, list_of_gl_paths):
     position = config['position']
@@ -68,10 +70,10 @@ def __main__():
                     help="perform headless export of tracking results")
     parser.add_argument("yaml_config_file", type=str,
                     help="path to YAML file with dataset configuration")
-    args = parser.parse_args()
+    cmd_args = parser.parse_args()
 
     # Open the file and load the file
-    with open(args.yaml_config_file) as f:
+    with open(cmd_args.yaml_config_file) as f:
         config = yaml.load(f, Loader=SafeLoader)
 
     gl_directory_paths = build_list_of_gl_directory_paths(config)
@@ -82,10 +84,15 @@ def __main__():
     # [print(path) for path in gl_tiff_paths]
 
     for tiff_path, args_dict in zip(gl_tiff_paths, cmd_args_dict_list):
-        args_string = build_arg_string(args_dict)
+        current_args_dict = args_dict.copy()
+        if cmd_args.track:
+            current_args_dict.update({'headless':'', 'track-only':''})
+        if cmd_args.track:
+            pass
+        args_string = build_arg_string(current_args_dict)
         moma_command = f'moma {args_string} -i {tiff_path}'
         print(moma_command)
-        os.system(moma_command)
+        # os.system(moma_command)
         # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")
 
     # input_path = config['path']
