@@ -4,14 +4,9 @@ arg:
   analysis: 'test_analysis'
 position:
   0:
-    gl:
-    - 12
-    - 23
-    arg:
-      tmin: 10
-      tmax: 100
+    gl: {12, 23}
+    arg: {tmin: 10, tmax: 100}
   15:
-    gl: []
-    arg:
-      tmax: 100
+    gl: {}
+    arg: {tmax: 100}
   21: {}

@@ -75,7 +75,6 @@ def build_list_of_command_line_arguments(config, list_of_gl_paths):
                 pos_string = 'Pos'+ str(pos_ind)
                 if pos_string in path:
                     cmd_args_dict_list[ind].update(arg_dict)
-                    # cmd_args_list[ind] = build_arg_string(arg_dict)
     return cmd_args_dict_list
 
 def calculate_log_file_path(yaml_config_file_path: Path):
