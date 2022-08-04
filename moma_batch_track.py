@@ -58,8 +58,8 @@ def build_list_of_gl_tiff_file_paths(gl_directory_paths: list):
         gl_tiff_paths.append(tiff_path)
     return gl_tiff_paths
 
-def build_arg_string(arg_dict):
-    return ' '.join([f'-{key} {arg_dict[key]}' if arg_dict[key] is not None or '' else f'-{key}' for key in arg_dict])
+def build_arg_string(arg_list):
+    return ' '.join([f'-{list(entry.keys())[0]} {list(entry.values())[0]}' if type(entry) is dict else f'-{entry}' if type(entry) is str else '' for entry in arg_list])
 
 def add_to_or_update_arg_list(args_to_update: list, new_args: list):
     for new_arg in new_args:
@@ -79,19 +79,18 @@ def add_to_or_update_arg_list(args_to_update: list, new_args: list):
 def build_list_of_command_line_arguments(config, list_of_gl_paths):
     position = config['position']
 
-    cmd_args_dict_list = [list()]*len(list_of_gl_paths)
+    cmd_arg_lists = [list()]*len(list_of_gl_paths)
     if 'arg' in config:
-        for arg_dict in cmd_args_dict_list:
-            arg_dict = add_to_or_update_arg_list(arg_dict, config['arg'])
+        for cmd_arg_list in cmd_arg_lists:
+            cmd_arg_list = add_to_or_update_arg_list(cmd_arg_list, config['arg'])
     for pos_ind in position:
         if 'arg' in position[pos_ind]:
-            arg_dict = position[pos_ind]['arg']
+            cmd_arg_list = position[pos_ind]['arg']
             for ind, path in enumerate(list_of_gl_paths):
                 pos_string = 'Pos'+ str(pos_ind)
                 if pos_string in path:
-                    cmd_args_dict_list[ind].update(arg_dict)
-                    # cmd_args_list[ind] = build_arg_string(arg_dict)
-    return cmd_args_dict_list
+                    cmd_arg_lists[ind] = add_to_or_update_arg_list(cmd_arg_lists[ind], cmd_arg_list)
+    return cmd_arg_lists
 
 def calculate_log_file_path(yaml_config_file_path: Path):
     return Path(os.path.join(yaml_config_file_path.parent,yaml_config_file_path.stem + '.log'))
@@ -160,23 +159,24 @@ def __main__():
 
     gl_directory_paths = build_list_of_gl_directory_paths(config)
     gl_tiff_paths = build_list_of_gl_tiff_file_paths(gl_directory_paths)
-    cmd_args_dict_list = build_list_of_command_line_arguments(config, gl_directory_paths)
+    cmd_arg_lists = build_list_of_command_line_arguments(config, gl_directory_paths)
 
     print("START BATCH RUN.")
-    for tiff_path, gl_directory_path, args_dict in zip(gl_tiff_paths, gl_directory_paths, cmd_args_dict_list):
-        current_args_dict = args_dict.copy()
+    for tiff_path, gl_directory_path, arg_list in zip(gl_tiff_paths, gl_directory_paths, cmd_arg_lists):
+        current_arg_list = arg_list.copy()
         if cmd_args.track:
-            current_args_dict.update({'headless':None, 'trackonly':None})
+            current_arg_list.append('headless')
+            current_arg_list.append('trackonly')
         elif cmd_args.curate:
-            analysisName = current_args_dict.pop('analysis', None)
+            analysisName = current_arg_list.pop('analysis', None)
             if not analysisName: raise ArgumentError("Argument 'analysis' is not set for running curation.")
-            current_args_dict = {'reload': gl_directory_path, 'analysis': analysisName}  # for running the curation we only need the GL directory path and the name of the analysis
+            current_arg_list = {'reload': gl_directory_path, 'analysis': analysisName}  # for running the curation we only need the GL directory path and the name of the analysis
         elif cmd_args.export:
-            analysisName = current_args_dict.pop('analysis', None)
+            analysisName = current_arg_list.pop('analysis', None)
             if not analysisName: raise ArgumentError("Argument 'analysis' is not set for running curation.")
-            current_args_dict = {'headless':None, 'reload': gl_directory_path, 'analysis': analysisName}  # for running the curation we only need the GL directory path and the name of the analysis
+            current_arg_list = {'headless':None, 'reload': gl_directory_path, 'analysis': analysisName}  # for running the curation we only need the GL directory path and the name of the analysis
             pass
-        args_string = build_arg_string(current_args_dict)
+        args_string = build_arg_string(current_arg_list)
         moma_command = f'moma {args_string} -i {tiff_path}'
         print("RUN MOMA: " + moma_command)
         os.system(moma_command)
