@@ -61,17 +61,38 @@ def build_list_of_gl_tiff_file_paths(gl_directory_paths: list):
 def build_arg_string(arg_dict):
     return ' '.join([f'-{key} {arg_dict[key]}' if arg_dict[key] is not None or '' else f'-{key}' for key in arg_dict])
 
-def get_gl_export_data_path(gl_directory_path, analysisName):
-    return Path(os.path.join(gl_directory_path, analysisName, analysisName+'__export_data'))
+class GlFileManager(object):
+    def __init__(self, gl_directory_path, analysisName):
+        self.gl_directory_path = gl_directory_path
+        self.analysisName = analysisName
 
-def get_gl_track_data_path(gl_directory_path, analysisName):
-    return Path(os.path.join(gl_directory_path, analysisName, analysisName+'__track_data'))
+    def get_gl_export_data_path(self) -> Path:
+        return Path(os.path.join(self.gl_directory_path, self.analysisName, self.analysisName+'__export_data'))
 
-def gl_track_data_exists(gl_track_data_path: Path):
-    if not gl_track_data_path.exists():
-        return False
-    else:
-        raise NotImplementedError()
+    def get_gl_track_data_path(self) -> Path:
+        return Path(os.path.join(self.gl_directory_path, self.analysisName, self.analysisName+'__track_data'))
+
+    def get_gl_curation_flag_path(self) -> Path:
+        gl_track_data_path = self.get_gl_track_data_path()
+        assert(gl_track_data_path.exists())
+        gl_curation_flag_path = Path(os.path.join(gl_track_data_path, "CURATED"))
+        return gl_curation_flag_path
+
+    def get_gl_is_curated(self) -> bool:
+        gl_curation_flag_file = self.get_gl_curation_flag_path()
+        return gl_curation_flag_file.exists()
+
+    def gl_track_data_exists(self):
+        if not self.get_gl_track_data_path.exists():
+            return False
+        else:
+            raise NotImplementedError()
+
+    def get_analysis_name(self):
+        return self.analysisName
+
+    def set_gl_is_curated(self):
+        self.get_gl_curation_flag_path().touch()
 
 def build_list_of_command_line_arguments(config, list_of_gl_paths):
     position = config['position']
@@ -160,25 +181,29 @@ def __main__():
 
     for tiff_path, gl_directory_path, args_dict in zip(gl_tiff_paths, gl_directory_paths, cmd_args_dict_list):
         current_args_dict = args_dict.copy()
-        analysisName = current_args_dict['analysis']
-        gl_export_data_path = get_gl_export_data_path(gl_directory_path, analysisName)
-        if gl_export_data_path.exists():
-            logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because a data export folder for analysis '{analysisName}' already exists: {gl_export_data_path}")
+        
+        if 'analysis' not in current_args_dict:
+            raise ArgumentError("Value for 'analysis' is not set for running curation.")
+        else:
+            analysisName = current_args_dict['analysis']
+
+        gl_file_manager = GlFileManager(gl_directory_path, analysisName)
+
+        if gl_file_manager.get_gl_export_data_path().exists():
+            logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because a data export folder for analysis '{gl_file_manager.get_analysis_name()}' already exists: {gl_file_manager.get_gl_export_data_path()}")
             continue
+
         if cmd_args.track:
             current_args_dict.update({'headless':None, 'trackonly':None})
             run_moma_and_log(logger, tiff_path, current_args_dict)
         elif cmd_args.curate:
-            analysisName = current_args_dict.pop('analysis', None)
-            if not analysisName: raise ArgumentError("Argument 'analysis' is not set for running curation.")
-            current_args_dict = {'reload': gl_directory_path, 'analysis': analysisName}  # for running the curation we only need the GL directory path and the name of the analysis
-            run_moma_and_log(logger, tiff_path, current_args_dict)
+            current_args_dict = {'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
+            if not gl_file_manager.get_gl_is_curated():
+                run_moma_and_log(logger, tiff_path, current_args_dict)
+                gl_file_manager.set_gl_is_curated()
         elif cmd_args.export:
-            analysisName = current_args_dict.pop('analysis', None)
-            if not analysisName: raise ArgumentError("Argument 'analysis' is not set for running curation.")
-            current_args_dict = {'headless':None, 'reload': gl_directory_path, 'analysis': analysisName}  # for running the curation we only need the GL directory path and the name of the analysis
+            current_args_dict = {'headless':None, 'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
             run_moma_and_log(logger, tiff_path, current_args_dict)
-            pass
     logger.info("FINISHED BATCH RUN.")
 
 def run_moma_and_log(logger, tiff_path, current_args_dict):
