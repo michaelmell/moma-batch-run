@@ -65,12 +65,12 @@ def build_list_of_command_line_arguments(config, list_of_gl_paths):
     position = config['position']
 
     cmd_args_dict_list = [{}]*len(list_of_gl_paths)
-    if 'arg' in config:
+    if 'default_moma_arg' in config:
         for arg_dict in cmd_args_dict_list:
-            arg_dict.update(config['arg'])
+            arg_dict.update(config['default_moma_arg'])
     for pos_ind in position:
-        if 'arg' in position[pos_ind]:
-            arg_dict = position[pos_ind]['arg']
+        if 'moma_arg' in position[pos_ind]:
+            arg_dict = position[pos_ind]['moma_arg']
             for ind, path in enumerate(list_of_gl_paths):
                 pos_string = 'Pos'+ str(pos_ind)
                 if pos_string in path:
@@ -124,29 +124,28 @@ def __main__():
                         format='%(asctime)s - %(levelname)s - %(message)s',
                         filename=log_file,
                         filemode='a')
-    # define a new Handler to log to console as well
     console = logging.StreamHandler()
-    # optional, set the logging level
     console.setLevel(logging.INFO)
-    # set a format which is the same for console use
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    # tell the handler to use this format
     console.setFormatter(formatter)
-    # add the handler to the root logger
     logging.getLogger('default').addHandler(console)
     logger = logging.getLogger('default')
-
     sys.stdout = StreamToLogger(logger, logging.INFO)
     sys.stderr = StreamToLogger(logger, logging.ERROR)
-    
+
     with open(cmd_args.yaml_config_file) as f:
         config = yaml.load(f, Loader=SafeLoader)
 
+    logger.info("START BATCH RUN.")
+    run_type = 'TRACKING' if cmd_args.track else 'CURATING' if cmd_args.curate else 'EXPORTING' if cmd_args.export else 'UNDEFINED ERROR'
+    logger.info(f"Run type: {run_type}")
+    batch_command_string = ' '.join(sys.argv)
+    logger.info(f"Command: {batch_command_string}")
+    
     gl_directory_paths = build_list_of_gl_directory_paths(config)
     gl_tiff_paths = build_list_of_gl_tiff_file_paths(gl_directory_paths)
     cmd_args_dict_list = build_list_of_command_line_arguments(config, gl_directory_paths)
 
-    print("START BATCH RUN.")
     for tiff_path, gl_directory_path, args_dict in zip(gl_tiff_paths, gl_directory_paths, cmd_args_dict_list):
         current_args_dict = args_dict.copy()
         if cmd_args.track:

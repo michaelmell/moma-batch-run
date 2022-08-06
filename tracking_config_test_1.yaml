@@ -1,12 +1,20 @@
+---
+file_format: 1.0.0
 path: /media/micha/T7/data_michael_mell/moma_test_data/000_development/feature/20220121-fix-loading-of-curated-datasets/Lis/20211026/20211026__lis__process_positions__output__20211101-013152
-arg:
+default_moma_args:
   p: '/media/micha/T7/data_michael_mell/moma_test_data/000_development/feature/20220121-fix-loading-of-curated-datasets/Lis/20211026/mm.properties'
   analysis: 'test_analysis'
 position:
   0:
-    gl: {12, 23}
-    arg: {tmin: 10, tmax: 100}
+    gl: {12,
+         23:
+          {moma_arg:
+            {tmin: 20,
+             tmax: 80}
+            }
+        }
+    moma_arg: {tmin: 10, tmax: 100}
   15:
     gl: {}
-    arg: {tmax: 100}
+    moma_arg: {tmax: 100}
   21: {}
