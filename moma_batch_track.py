@@ -61,6 +61,18 @@ def build_list_of_gl_tiff_file_paths(gl_directory_paths: list):
 def build_arg_string(arg_dict):
     return ' '.join([f'-{key} {arg_dict[key]}' if arg_dict[key] is not None or '' else f'-{key}' for key in arg_dict])
 
+def get_gl_export_data_path(gl_directory_path, analysisName):
+    return Path(os.path.join(gl_directory_path, analysisName, analysisName+'__export_data'))
+
+def get_gl_track_data_path(gl_directory_path, analysisName):
+    return Path(os.path.join(gl_directory_path, analysisName, analysisName+'__track_data'))
+
+def gl_track_data_exists(gl_track_data_path: Path):
+    if not gl_track_data_path.exists():
+        return False
+    else:
+        raise NotImplementedError()
+
 def build_list_of_command_line_arguments(config, list_of_gl_paths):
     position = config['position']
 
@@ -137,8 +149,8 @@ def __main__():
         config = yaml.load(f, Loader=SafeLoader)
 
     logger.info("START BATCH RUN.")
-    run_type = 'TRACKING' if cmd_args.track else 'CURATING' if cmd_args.curate else 'EXPORTING' if cmd_args.export else 'UNDEFINED ERROR'
-    logger.info(f"Run type: {run_type}")
+    batch_operation_type = 'TRACK' if cmd_args.track else 'CURATE' if cmd_args.curate else 'EXPORT' if cmd_args.export else 'UNDEFINED ERROR'
+    logger.info(f"Run type: {batch_operation_type}")
     batch_command_string = ' '.join(sys.argv)
     logger.info(f"Command: {batch_command_string}")
     
@@ -148,6 +160,7 @@ def __main__():
 
     for tiff_path, gl_directory_path, args_dict in zip(gl_tiff_paths, gl_directory_paths, cmd_args_dict_list):
         current_args_dict = args_dict.copy()
+        analysisName = current_args_dict['analysis']
         if cmd_args.track:
             current_args_dict.update({'headless':None, 'trackonly':None})
         elif cmd_args.curate:
@@ -161,11 +174,15 @@ def __main__():
             pass
         args_string = build_arg_string(current_args_dict)
         moma_command = f'moma {args_string} -i {tiff_path}'
-        print("RUN MOMA: " + moma_command)
-        os.system(moma_command)
-        # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")  # this would output also MoMA output to the log file:
-        print("FINISHED MOMA.")
-    print("FINISHED BATCH RUN.")
+        gl_export_data_path = get_gl_export_data_path(gl_directory_path, analysisName)
+        if gl_export_data_path.exists():
+            logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because a data export folder for analysis '{analysisName}' already exists: {gl_export_data_path}")
+        else:
+            logger.info("RUN MOMA: " + moma_command)
+            os.system(moma_command)
+            # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")  # this would output also MoMA output to the log file:
+            logger.info("FINISHED MOMA.")
+    logger.info("FINISHED BATCH RUN.")
 
 if __name__ == "__main__":
     __main__()
