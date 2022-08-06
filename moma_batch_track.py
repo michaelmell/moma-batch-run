@@ -161,28 +161,33 @@ def __main__():
     for tiff_path, gl_directory_path, args_dict in zip(gl_tiff_paths, gl_directory_paths, cmd_args_dict_list):
         current_args_dict = args_dict.copy()
         analysisName = current_args_dict['analysis']
+        gl_export_data_path = get_gl_export_data_path(gl_directory_path, analysisName)
+        if gl_export_data_path.exists():
+            logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because a data export folder for analysis '{analysisName}' already exists: {gl_export_data_path}")
+            continue
         if cmd_args.track:
             current_args_dict.update({'headless':None, 'trackonly':None})
+            run_moma_and_log(logger, tiff_path, current_args_dict)
         elif cmd_args.curate:
             analysisName = current_args_dict.pop('analysis', None)
             if not analysisName: raise ArgumentError("Argument 'analysis' is not set for running curation.")
             current_args_dict = {'reload': gl_directory_path, 'analysis': analysisName}  # for running the curation we only need the GL directory path and the name of the analysis
+            run_moma_and_log(logger, tiff_path, current_args_dict)
         elif cmd_args.export:
             analysisName = current_args_dict.pop('analysis', None)
             if not analysisName: raise ArgumentError("Argument 'analysis' is not set for running curation.")
             current_args_dict = {'headless':None, 'reload': gl_directory_path, 'analysis': analysisName}  # for running the curation we only need the GL directory path and the name of the analysis
+            run_moma_and_log(logger, tiff_path, current_args_dict)
             pass
-        args_string = build_arg_string(current_args_dict)
-        moma_command = f'moma {args_string} -i {tiff_path}'
-        gl_export_data_path = get_gl_export_data_path(gl_directory_path, analysisName)
-        if gl_export_data_path.exists():
-            logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because a data export folder for analysis '{analysisName}' already exists: {gl_export_data_path}")
-        else:
-            logger.info("RUN MOMA: " + moma_command)
-            os.system(moma_command)
-            # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")  # this would output also MoMA output to the log file:
-            logger.info("FINISHED MOMA.")
     logger.info("FINISHED BATCH RUN.")
+
+def run_moma_and_log(logger, tiff_path, current_args_dict):
+    args_string = build_arg_string(current_args_dict)
+    moma_command = f'moma {args_string} -i {tiff_path}'
+    logger.info("RUN MOMA: " + moma_command)
+    os.system(moma_command)
+    # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")  # this would output also MoMA output to the log file:
+    logger.info("FINISHED MOMA.")
 
 if __name__ == "__main__":
     __main__()
