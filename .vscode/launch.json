@@ -8,7 +8,7 @@
             "name": "no argument",
             "type": "python",
             "request": "launch",
-            "program": "moma_batch_track.py",
+            "program": "moma_batch_run.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args" : []
@@ -17,7 +17,7 @@
             "name": "track arg test",
             "type": "python",
             "request": "launch",
-            "program": "moma_batch_track.py",
+            "program": "moma_batch_run.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args" : ["-track","tracking_config_test_1.yaml"]
@@ -26,7 +26,7 @@
             "name": "curate arg test",
             "type": "python",
             "request": "launch",
-            "program": "moma_batch_track.py",
+            "program": "moma_batch_run.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args" : ["-curate","tracking_config_test_1.yaml"]
@@ -35,7 +35,7 @@
             "name": "export arg test",
             "type": "python",
             "request": "launch",
-            "program": "moma_batch_track.py",
+            "program": "moma_batch_run.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args" : ["-export","tracking_config_test_1.yaml"]
