@@ -74,6 +74,7 @@ class AnalysisMetadata(object):
             self.value_dict = {'created': datetime.now(),
             'tracked': False,
             'curated': False}
+            self.save()
         
     @property
     def path(self):
@@ -110,7 +111,10 @@ class GlFileManager(object):
         return Path(os.path.join(self.gl_directory_path, self.analysisName, self.analysisName+'__export_data'))
 
     def get_gl_track_data_path(self) -> Path:
-        return Path(os.path.join(self.gl_directory_path, self.analysisName, self.analysisName+'__track_data'))
+        path = Path(os.path.join(self.gl_directory_path, self.analysisName, self.analysisName+'__track_data'))
+        if not path.exists():
+            path.mkdir(parents=True, exist_ok=True)
+        return path
 
     def get_gl_is_curated(self) -> bool:
         return self.__get_analysis_metadata().curated
@@ -229,7 +233,7 @@ def __main__():
         gl_file_manager = GlFileManager(gl_directory_path, analysisName)
 
         if gl_file_manager.get_gl_export_data_path().exists():
-            logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because a data export folder for analysis '{gl_file_manager.get_analysis_name()}' already exists: {gl_file_manager.get_gl_export_data_path()}")
+            logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already exported analysis: {gl_file_manager.get_gl_export_data_path()}")
             continue
 
         if cmd_args.track:
@@ -237,6 +241,8 @@ def __main__():
             if not gl_file_manager.get_gl_is_tracked():
                 run_moma_and_log(logger, tiff_path, current_args_dict)
                 gl_file_manager.set_gl_is_tracked()
+            else:
+                logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already tracked for this analysis: {gl_file_manager.get_gl_track_data_path()}")
         elif cmd_args.curate:
             current_args_dict = {'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
             if not gl_file_manager.get_gl_is_curated():
