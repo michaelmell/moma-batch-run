@@ -168,6 +168,8 @@ def __main__():
                     help="perform headless export of tracking results")
     parser.add_argument("-l", "--log", type=str,
                     help="path to the log-file for this batch-run; derived from 'yaml_config_file' and stored next to it, if not specified")
+    parser.add_argument("-f", "--force", action='store_true',
+                    help="force the current operation. Will force tracking of GLs even, if they were previously tracked. Will overwrite the previous tracking folder.")
     parser.add_argument("yaml_config_file", type=str,
                     help="path to YAML file with dataset configuration")
     cmd_args = parser.parse_args()
@@ -218,6 +220,9 @@ def __main__():
     batch_command_string = ' '.join(sys.argv)
     logger.info(f"Command: {batch_command_string}")
     
+    if cmd_args.force:
+        logger.info(f"You are forcing the operation {batch_operation_type}. This will overwrite ")
+
     gl_directory_paths = build_list_of_gl_directory_paths(config)
     gl_tiff_paths = build_list_of_gl_tiff_file_paths(gl_directory_paths)
     cmd_args_dict_list = build_list_of_command_line_arguments(config, gl_directory_paths)
@@ -238,6 +243,7 @@ def __main__():
 
         if cmd_args.track:
             current_args_dict.update({'headless':None, 'trackonly':None})
+            
             if not gl_file_manager.get_gl_is_tracked():
                 run_moma_and_log(logger, tiff_path, current_args_dict)
                 gl_file_manager.set_gl_is_tracked()
