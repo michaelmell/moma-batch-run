@@ -71,7 +71,8 @@ class AnalysisMetadata(object):
             with open(path, 'r') as fp:
                 self.value_dict = json.load(fp)
         else:
-            self.value_dict = {'created': datetime.now(),
+            self.value_dict = {'file_version': '0.1.0',
+            'created': datetime.now(),
             'tracked': False,
             'curated': False}
             self.save()
