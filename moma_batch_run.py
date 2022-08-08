@@ -1,7 +1,9 @@
 #! /usr/bin/env python
 
 from ctypes import ArgumentError
+import json
 from pathlib import Path
+from datetime import datetime
 import os
 import sys
 import argparse
@@ -61,6 +63,44 @@ def build_list_of_gl_tiff_file_paths(gl_directory_paths: list):
 def build_arg_string(arg_dict):
     return ' '.join([f'-{key} {arg_dict[key]}' if arg_dict[key] is not None or '' else f'-{key}' for key in arg_dict])
 
+class AnalysisMetadata(object):
+    def __init__(self, path: Path):
+        assert(type(path) is Path, f'path is not of type Path')
+        self.__path = path
+        if path.exists():
+            with open(path, 'r') as fp:
+                self.value_dict = json.load(fp)
+        else:
+            self.value_dict = {'created': datetime.now(),
+            'tracked': False,
+            'curated': False}
+        
+    @property
+    def path(self):
+        return self.__path
+    
+    @property
+    def tracked(self):
+        return self.value_dict['tracked']
+
+    @tracked.setter
+    def tracked(self, val):
+        self.value_dict['tracked'] = val
+        self.save()
+
+    @property
+    def curated(self):
+        return self.value_dict['curated']
+
+    @curated.setter
+    def curated(self, val):
+        self.value_dict['curated'] = val
+        self.save()
+
+    def save(self):
+        with open(self.path, 'w') as fp:
+            json.dump(self.value_dict, fp, default=str)  # default=str is needed for the serialization of datetime object
+
 class GlFileManager(object):
     def __init__(self, gl_directory_path, analysisName):
         self.gl_directory_path = gl_directory_path
@@ -72,27 +112,26 @@ class GlFileManager(object):
     def get_gl_track_data_path(self) -> Path:
         return Path(os.path.join(self.gl_directory_path, self.analysisName, self.analysisName+'__track_data'))
 
-    def get_gl_curation_flag_path(self) -> Path:
-        gl_track_data_path = self.get_gl_track_data_path()
-        assert(gl_track_data_path.exists())
-        gl_curation_flag_path = Path(os.path.join(gl_track_data_path, "CURATED"))
-        return gl_curation_flag_path
-
     def get_gl_is_curated(self) -> bool:
-        gl_curation_flag_file = self.get_gl_curation_flag_path()
-        return gl_curation_flag_file.exists()
+        return self.__get_analysis_metadata().curated
 
-    def gl_track_data_exists(self):
-        if not self.get_gl_track_data_path.exists():
-            return False
-        else:
-            raise NotImplementedError()
+    def get_gl_is_tracked(self):
+        return self.__get_analysis_metadata().tracked
+    
+    def set_gl_is_tracked(self):
+        self.__get_analysis_metadata().tracked = True
+    
+    def __get_analysis_metadata(self) -> AnalysisMetadata:
+        return AnalysisMetadata(self.get_analysis_meta_data_path())
+
+    def get_analysis_meta_data_path(self) -> Path:
+        return Path(os.path.join(self.get_gl_track_data_path(), 'analysis_metadata.json'))
 
     def get_analysis_name(self):
         return self.analysisName
 
     def set_gl_is_curated(self):
-        self.get_gl_curation_flag_path().touch()
+        self.__get_analysis_metadata().curated = True
 
 def build_list_of_command_line_arguments(config, list_of_gl_paths):
     position = config['pos']
@@ -195,7 +234,9 @@ def __main__():
 
         if cmd_args.track:
             current_args_dict.update({'headless':None, 'trackonly':None})
-            run_moma_and_log(logger, tiff_path, current_args_dict)
+            if not gl_file_manager.get_gl_is_tracked():
+                run_moma_and_log(logger, tiff_path, current_args_dict)
+                gl_file_manager.set_gl_is_tracked()
         elif cmd_args.curate:
             current_args_dict = {'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
             if not gl_file_manager.get_gl_is_curated():
