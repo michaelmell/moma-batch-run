@@ -135,6 +135,7 @@ class GlFileManager(object):
         return self.analysisName
 
     def set_gl_is_curated(self):
+        self.__get_analysis_metadata().tracked = True  # TODO-MM-20220808: this will be the case, if we were able to curate the GL; I add this here to handle GLs that we tracked, before implementing the use of `analysis_metadata.json`
         self.__get_analysis_metadata().curated = True
 
 def build_list_of_command_line_arguments(config, list_of_gl_paths):
