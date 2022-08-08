@@ -101,7 +101,7 @@ class AnalysisMetadata(object):
 
     def save(self):
         with open(self.path, 'w') as fp:
-            json.dump(self.value_dict, fp, default=str)  # default=str is needed for the serialization of datetime object
+            json.dump(self.value_dict, fp, indent=2, default=str)  # default=str is needed for the serialization of datetime object
 
 class GlFileManager(object):
     def __init__(self, gl_directory_path, analysisName):
