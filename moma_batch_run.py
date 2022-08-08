@@ -65,7 +65,7 @@ def build_arg_string(arg_dict):
 
 class AnalysisMetadata(object):
     def __init__(self, path: Path):
-        assert(type(path) is Path, f'path is not of type Path')
+        # assert type(path) is Path, f'path is not of type Path'
         self.__path = path
         if path.exists():
             with open(path, 'r') as fp:
@@ -158,6 +158,20 @@ def build_list_of_command_line_arguments(config, list_of_gl_paths):
 def calculate_log_file_path(yaml_config_file_path: Path):
     return Path(os.path.join(yaml_config_file_path.parent,yaml_config_file_path.stem + '.log'))
 
+def parse_gl_selection_string(selection_string: str) -> dict:
+    selection_dict = eval(selection_string)
+    return selection_dict
+
+def keep_user_selected_gls(config: dict, selection: dict) -> dict:
+    cfg = config
+    selected_pos_ind = [key for key in selection]
+    cfg['pos'] = {pos_ind:cfg['pos'][pos_ind] for pos_ind in selected_pos_ind}
+    for pos_ind in cfg['pos']:
+        selected_gl_ind = [key for key in selection[pos_ind]]
+        print(f'{selected_gl_ind}')
+        cfg['pos'][pos_ind]['gl'] = {gl_ind:cfg['pos'][pos_ind]['gl'][gl_ind] for gl_ind in selected_gl_ind}
+    return cfg
+
 def __main__():
     parser = argparse.ArgumentParser()
     group = parser.add_argument_group('required (mutually exclusive) arguments')
@@ -170,6 +184,8 @@ def __main__():
                     help="perform headless export of tracking results")
     parser.add_argument("-l", "--log", type=str,
                     help="path to the log-file for this batch-run; derived from 'yaml_config_file' and stored next to it, if not specified")
+    parser.add_argument("-select", "--select", type=str,
+                    help="run only on seltced of GLs; GLs must be in the YAML config file")
     parser.add_argument("yaml_config_file", type=str,
                     help="path to YAML file with dataset configuration")
     cmd_args = parser.parse_args()
@@ -194,6 +210,10 @@ def __main__():
                 print("ERROR: Cannot write to the file log-file at: {cmd_args.log}")
                 exit(-1)
 
+    gl_user_selection = {}
+    if cmd_args.select is not None:
+        gl_user_selection = parse_gl_selection_string(cmd_args.select)
+
     # instructions how to setup the logger to write to terminal can be found here:
     # https://docs.python.org/3.8/howto/logging-cookbook.html
     # and
@@ -213,6 +233,9 @@ def __main__():
 
     with open(cmd_args.yaml_config_file) as f:
         config = yaml.load(f, Loader=SafeLoader)
+
+    if gl_user_selection:
+        config = keep_user_selected_gls(config, gl_user_selection)
 
     logger.info("START BATCH RUN.")
     batch_operation_type = 'TRACK' if cmd_args.track else 'CURATE' if cmd_args.curate else 'EXPORT' if cmd_args.export else 'UNDEFINED ERROR'
@@ -235,7 +258,7 @@ def __main__():
         gl_file_manager = GlFileManager(gl_directory_path, analysisName)
 
         if gl_file_manager.get_gl_export_data_path().exists():
-            logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already exported analysis: {gl_file_manager.get_gl_export_data_path()}")
+            logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already exported for analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
             continue
 
         if cmd_args.track:
@@ -244,7 +267,7 @@ def __main__():
                 run_moma_and_log(logger, tiff_path, current_args_dict)
                 gl_file_manager.set_gl_is_tracked()
             else:
-                logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already tracked for this analysis: {gl_file_manager.get_gl_track_data_path()}")
+                logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already tracked for analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_track_data_path()}")
         elif cmd_args.curate:
             current_args_dict = {'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
             if not gl_file_manager.get_gl_is_curated():
