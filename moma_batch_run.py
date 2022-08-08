@@ -31,8 +31,8 @@ class StreamToLogger(object):
         pass
 
 def build_list_of_gl_directory_paths(config):
-    input_path = config['path']
-    position = config['position']
+    input_path = config['preprocessing_path']
+    position = config['pos']
 
     gl_paths=[]
     for pos in position:
@@ -95,7 +95,7 @@ class GlFileManager(object):
         self.get_gl_curation_flag_path().touch()
 
 def build_list_of_command_line_arguments(config, list_of_gl_paths):
-    position = config['position']
+    position = config['pos']
 
     cmd_args_dict_list = [{}]*len(list_of_gl_paths)
     if 'default_moma_arg' in config:

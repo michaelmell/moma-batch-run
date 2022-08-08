@@ -1,10 +1,9 @@
----
-file_format: 1.0.0
-path: /media/micha/T7/data_michael_mell/moma_test_data/000_development/feature/20220121-fix-loading-of-curated-datasets/Lis/20211026/20211026__lis__process_positions__output__20211101-013152
+file_format: 0.1.0
+preprocessing_path: /media/micha/T7/data_michael_mell/moma_test_data/000_development/feature/20220121-fix-loading-of-curated-datasets/Lis/20211026/20211026__lis__process_positions__output__20211101-013152
 default_moma_arg:
   p: '/home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties'
   analysis: 'test_analysis'
-position:
+pos:
   0:
     gl: {12,
          23:
