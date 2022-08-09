@@ -159,7 +159,11 @@ def calculate_log_file_path(yaml_config_file_path: Path):
     return Path(os.path.join(yaml_config_file_path.parent,yaml_config_file_path.stem + '.log'))
 
 def parse_gl_selection_string(selection_string: str) -> dict:
-    selection_dict = eval(selection_string)
+    try:
+        selection_dict = eval(selection_string)
+    except SyntaxError:
+        print(f"ERROR: Could not parse value for option '--select': {selection_string}")
+        sys.exit(-1)
     return selection_dict
 
 def keep_user_selected_gls(config: dict, selection: dict) -> dict:
@@ -176,15 +180,15 @@ def __main__():
     group = parser.add_argument_group('required (mutually exclusive) arguments')
     mxgroup = group.add_mutually_exclusive_group(required=True)
     mxgroup.add_argument("-track", "--track", action='store_true',
-                    help="perform headless batch-tracking of GLs")
+                    help="run batch-tracking of GLs")
     mxgroup.add_argument("-curate", "--curate", action='store_true',
-                    help="perform interactive curation of GLs")
+                    help="run interactive curation of GLs")
     mxgroup.add_argument("-export", "--export", action='store_true',
-                    help="perform headless export of tracking results")
+                    help="run batch-export of tracking results")
     parser.add_argument("-l", "--log", type=str,
                     help="path to the log-file for this batch-run; derived from 'yaml_config_file' and stored next to it, if not specified")
     parser.add_argument("-select", "--select", type=str,
-                    help="run only on seltced of GLs; GLs must be in the YAML config file")
+                    help="run on selection of GLs specified in Python dictionary-format; GLs must be defined in 'yaml_config_file'; example: \"{0:{1,2}, 3:{4,5}}\", where 0, 3 are position indices and 1, 2, 4, 5 are GL indices")
     parser.add_argument("yaml_config_file", type=str,
                     help="path to YAML file with dataset configuration")
     cmd_args = parser.parse_args()
@@ -204,13 +208,16 @@ def __main__():
         if not f.writable():
             if cmd_args.log is not None:
                 print("ERROR: Check argument '-log'; cannot write to the log-file at: {cmd_args.log}")
-                exit(-1)
+                sys.exit(-1)
             else:
                 print("ERROR: Cannot write to the file log-file at: {cmd_args.log}")
-                exit(-1)
+                sys.exit(-1)
 
     gl_user_selection = {}
     if cmd_args.select is not None:
+        if cmd_args.select is "":
+            print(f"ERROR: Value is empty for option '--select'.")
+            sys.exit(-1)
         gl_user_selection = parse_gl_selection_string(cmd_args.select)
 
     # instructions how to setup the logger to write to terminal can be found here:
