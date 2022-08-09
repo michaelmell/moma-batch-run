@@ -202,6 +202,8 @@ def __main__():
                     help="run on selection of GLs specified in Python dictionary-format; GLs must be defined in 'yaml_config_file'; example: \"{0:{1,2}, 3:{4,5}}\", where 0, 3 are position indices and 1, 2, 4, 5 are GL indices")
     parser.add_argument("yaml_config_file", type=str,
                     help="path to YAML file with dataset configuration")
+    parser.add_argument("-f", "--force", action='store_true',
+                    help="force the operation")
     cmd_args = parser.parse_args()
 
     yaml_config_file_path = Path(cmd_args.yaml_config_file)
@@ -224,13 +226,14 @@ def __main__():
                 getLogger().error("Cannot write to the file log-file at: {cmd_args.log}")
                 sys.exit(-1)
 
+    running_on_selection = cmd_args.select is not None
     gl_user_selection = {}
-    if cmd_args.select is not None:
+    if running_on_selection:
         if cmd_args.select is "":
             getLogger().error("Value is empty for option '--select'.")
             sys.exit(-1)
         gl_user_selection = parse_gl_selection_string(cmd_args.select)
-
+    
     # instructions how to setup the logger to write to terminal can be found here:
     # https://docs.python.org/3.8/howto/logging-cookbook.html
     # and
@@ -247,6 +250,10 @@ def __main__():
     logger = logging.getLogger('default')
     sys.stdout = StreamToLogger(logger, logging.INFO)
     sys.stderr = StreamToLogger(logger, logging.ERROR)
+
+    forced_run = cmd_args.force
+    if forced_run:
+        getLogger().warning("Performing forced run.")
 
     with open(cmd_args.yaml_config_file) as f:
         config = yaml.load(f, Loader=SafeLoader)
@@ -274,26 +281,27 @@ def __main__():
 
         gl_file_manager = GlFileManager(gl_directory_path, analysisName)
 
-        if gl_file_manager.get_gl_export_data_path().exists() and cmd_args.select is None:
+        if gl_file_manager.get_gl_export_data_path().exists() and not (running_on_selection or forced_run):
             logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already exported for analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
             continue
 
         if cmd_args.track:
             current_args_dict.update({'headless':None, 'trackonly':None})
-            if not gl_file_manager.get_gl_is_tracked():
+            if not gl_file_manager.get_gl_is_tracked() or forced_run:
                 run_moma_and_log(logger, tiff_path, current_args_dict)
                 gl_file_manager.set_gl_is_tracked()
             else:
                 logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already tracked for analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_track_data_path()}")
         elif cmd_args.curate:
             current_args_dict = {'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
-            if not gl_file_manager.get_gl_is_curated() or cmd_args.select is not None:
+            if not gl_file_manager.get_gl_is_curated() or running_on_selection or forced_run:
                 # raise NotImplementedError("We need to make sure, that the export folder stays in sync with the track state")
                 run_moma_and_log(logger, tiff_path, current_args_dict)
                 gl_file_manager.set_gl_is_curated()
-        elif cmd_args.export:
-            current_args_dict = {'headless':None, 'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
-            run_moma_and_log(logger, tiff_path, current_args_dict)
+        elif cmd_args.export or forced_run:
+            if not gl_file_manager.get_gl_is_curated() or running_on_selection or forced_run:
+                current_args_dict = {'headless':None, 'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
+                run_moma_and_log(logger, tiff_path, current_args_dict)
     logger.info("FINISHED BATCH RUN.")
 
 def run_moma_and_log(logger, tiff_path, current_args_dict):

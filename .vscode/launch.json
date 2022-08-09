@@ -23,6 +23,15 @@
             "args" : ["-track","test_analysis.yaml"]
         },
         {
+            "name": "force-track",
+            "type": "python",
+            "request": "launch",
+            "program": "moma_batch_run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args" : ["-f","-track","test_analysis.yaml"]
+        },
+        {
             "name": "curate",
             "type": "python",
             "request": "launch",
@@ -30,6 +39,15 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args" : ["-curate","test_analysis.yaml"]
+        },
+        {
+            "name": "force-curate",
+            "type": "python",
+            "request": "launch",
+            "program": "moma_batch_run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args" : ["-f","-curate","test_analysis.yaml"]
         },
         {
             "name": "curate selection",
@@ -47,7 +65,16 @@
             "program": "moma_batch_run.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args" : ["-export","tracking_config_test_1.yaml"]
-        }
+            "args" : ["-export","test_analysis.yaml"]
+        },
+        {
+            "name": "force-export",
+            "type": "python",
+            "request": "launch",
+            "program": "moma_batch_run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args" : ["-f","-export","test_analysis.yaml"]
+        },
     ]
 }
