@@ -15,6 +15,8 @@ from yaml.loader import SafeLoader
 
 
 def query_yes_no(question, default="yes"):
+    "MM-20220809: This was taken from: https://stackoverflow.com/a/3041990"
+
     """Ask a yes/no question via raw_input() and return their answer.
 
     "question" is a string that is presented to the user.
@@ -139,6 +141,17 @@ class GlFileManager(object):
         self.gl_directory_path = gl_directory_path
         self.analysisName = analysisName
 
+    def move_track_data_to_backup(self, backup_dir_postfix):
+        self.move_to_backup(self.get_gl_track_data_path(), backup_dir_postfix)
+
+    def move_export_data_to_backup(self, backup_dir_postfix: str):
+        self.move_to_backup(self.get_gl_export_data_path(), backup_dir_postfix)
+
+    def move_to_backup(self, path_to_backup: Path, backup_dir_postfix: str):
+        if path_to_backup.exists():
+            backup_path = Path(str(path_to_backup) + backup_dir_postfix)
+            os.rename(path_to_backup, backup_path)
+
     def get_gl_export_data_path(self) -> Path:
         return Path(os.path.join(self.gl_directory_path, self.analysisName, self.analysisName+'__export_data'))
 
@@ -218,6 +231,7 @@ def keep_user_selected_gls(config: dict, selection: dict) -> dict:
     return cfg
 
 def __main__():
+    time_stamp_of_run = datetime.now().strftime('%Y%m%d-%H%M%S')
     parser = argparse.ArgumentParser()
     group = parser.add_argument_group('required (mutually exclusive) arguments')
     mxgroup = group.add_mutually_exclusive_group(required=True)
@@ -301,6 +315,8 @@ def __main__():
     logger.info(f"Run type: {batch_operation_type}")
     batch_command_string = ' '.join(sys.argv)
     logger.info(f"Command: {batch_command_string}")
+    backup_postfix = "__BKP_" + time_stamp_of_run
+    logger.info(f"Backups created during this run are appended with postfix: {backup_postfix}")
     
     gl_directory_paths = build_list_of_gl_directory_paths(config)
     gl_tiff_paths = build_list_of_gl_tiff_file_paths(gl_directory_paths)
@@ -323,6 +339,8 @@ def __main__():
         if cmd_args.track:
             current_args_dict.update({'headless':None, 'trackonly':None})
             if not gl_file_manager.get_gl_is_tracked() or is_forced_run:
+                gl_file_manager.move_track_data_to_backup(backup_postfix)
+                gl_file_manager.move_export_data_to_backup(backup_postfix)
                 run_moma_and_log(logger, tiff_path, current_args_dict)
                 gl_file_manager.set_gl_is_tracked()
             else:
