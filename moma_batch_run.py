@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 import os
+from distutils.dir_util import copy_tree
 import sys
 import argparse
 from glob import glob
@@ -141,6 +142,14 @@ class GlFileManager(object):
         self.gl_directory_path = gl_directory_path
         self.analysisName = analysisName
 
+    def copy_track_data_to_backup(self, backup_dir_postfix):
+        self.copy_to_backup(self.get_gl_track_data_path(), backup_dir_postfix)
+
+    def copy_to_backup(self, path_to_backup: Path, backup_dir_postfix: str):
+        if path_to_backup.exists():
+            backup_path = Path(str(path_to_backup) + backup_dir_postfix)
+            copy_tree(str(path_to_backup), str(backup_path))
+
     def move_track_data_to_backup(self, backup_dir_postfix):
         self.move_to_backup(self.get_gl_track_data_path(), backup_dir_postfix)
 
@@ -166,6 +175,9 @@ class GlFileManager(object):
 
     def get_gl_is_tracked(self):
         return self.__get_analysis_metadata().tracked
+    
+    def get_gl_is_exported(self) -> bool:
+        return self.get_gl_export_data_path().exists()
     
     def set_gl_is_tracked(self):
         self.__get_analysis_metadata().tracked = True
@@ -316,7 +328,7 @@ def __main__():
     batch_command_string = ' '.join(sys.argv)
     logger.info(f"Command: {batch_command_string}")
     backup_postfix = "__BKP_" + time_stamp_of_run
-    logger.info(f"Backups created during this run are appended with postfix: {backup_postfix}")
+    logger.info(f"Any backups created during this run are appended with postfix: {backup_postfix}")
     
     gl_directory_paths = build_list_of_gl_directory_paths(config)
     gl_tiff_paths = build_list_of_gl_tiff_file_paths(gl_directory_paths)
@@ -332,10 +344,6 @@ def __main__():
 
         gl_file_manager = GlFileManager(gl_directory_path, analysisName)
 
-        if gl_file_manager.get_gl_export_data_path().exists() and not (running_on_selection or is_forced_run):
-            logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already exported for analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
-            continue
-
         if cmd_args.track:
             current_args_dict.update({'headless':None, 'trackonly':None})
             if not gl_file_manager.get_gl_is_tracked() or is_forced_run:
@@ -348,13 +356,19 @@ def __main__():
         elif cmd_args.curate:
             current_args_dict = {'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
             if not gl_file_manager.get_gl_is_curated() or running_on_selection or is_forced_run:
-                # raise NotImplementedError("We need to make sure, that the export folder stays in sync with the track state")
+                if gl_file_manager.get_gl_is_curated() or gl_file_manager.get_gl_is_exported():  # gl_file_manager.get_gl_is_exported(): handles the case that the GL was exported without curation
+                    gl_file_manager.copy_track_data_to_backup(backup_postfix)
+                    gl_file_manager.move_export_data_to_backup(backup_postfix)
                 run_moma_and_log(logger, tiff_path, current_args_dict)
                 gl_file_manager.set_gl_is_curated()
+            else:
+                logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already curated for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
         elif cmd_args.export or is_forced_run:
-            if not gl_file_manager.get_gl_is_curated() or running_on_selection or is_forced_run:
+            if not gl_file_manager.get_gl_is_exported():
                 current_args_dict = {'headless':None, 'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
                 run_moma_and_log(logger, tiff_path, current_args_dict)
+            else:
+                logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already exported for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
     logger.info("FINISHED BATCH RUN.")
 
 def run_moma_and_log(logger, tiff_path, current_args_dict):
