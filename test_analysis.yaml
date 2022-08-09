@@ -13,7 +13,7 @@ pos:
           #    tmax: 80}
           #   }
         }
-    # moma_arg: {tmin: 10, tmax: 100}
+    moma_arg: {tmin: 10, tmax: 100}
   15:
     gl: {4,
          18}

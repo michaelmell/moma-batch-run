@@ -68,26 +68,41 @@ class StreamToLogger(object):
 
 def build_list_of_gl_directory_paths(config):
     input_path = config['preprocessing_path']
-    position = config['pos']
+    positions = config['pos']
 
     gl_paths=[]
-    for pos in position:
-        get_gl_paths_for_position(input_path, position, gl_paths, pos)
-    return gl_paths
+    for pos in positions:
+        get_gl_paths_for_position(input_path, positions, gl_paths, pos, config)
+    return gl_paths, config
 
 
 """
 This method caluclates the paths to the GL directories.
 """
-def get_gl_paths_for_position(input_path, position, gl_paths, pos):
-    if position[pos]: # GLs are defined for this position; iterate over them to generate list of paths
-        for gl in position[pos]['gl']:
+def get_gl_paths_for_position(input_path, positions, gl_paths, pos, config):
+    if positions[pos]: # GLs are defined for this position; iterate over them to generate list of paths
+        for gl in positions[pos]['gl']:
             gl_path=input_path
             gl_path+=("/Pos"+str(pos))
             gl_path+="/Pos"+str(pos)+"_"+"GL"+str(gl)
             gl_paths.append(gl_path)
+            if not config['pos'][pos]['gl'][gl]:
+                config['pos'][pos]['gl'][gl] = {}
+            config['pos'][pos]['gl'][gl].update({'gl_path': gl_path})
 
-def build_list_of_gl_tiff_file_paths(gl_directory_paths: list):
+def do_for_gl_entry_in_config(config: dict, fnc):
+    positions = config['pos']
+    for pos_ind in positions:
+        if positions[pos_ind]: # GLs are defined for this position; iterate over them to generate list of paths
+            for gl_ind in positions[pos_ind]['gl']:
+                fnc(positions[pos_ind]['gl'][gl_ind], pos_ind, gl_ind)
+
+def add_gl_tiff_path(gl_entry, pos_ind, gl_ind):
+    gl_entry.update({'tiff_path': glob(gl_entry['gl_path']+'/*[0-9].tif')[0]})
+
+def build_list_of_gl_tiff_file_paths(gl_directory_paths: list, config: dict):
+    do_for_gl_entry_in_config(config, add_gl_tiff_path)
+
     gl_tiff_paths = []
     for path in gl_directory_paths:
         tiff_path = glob(path+'/*[0-9].tif')[0]
@@ -195,13 +210,20 @@ class GlFileManager(object):
         self.__get_analysis_metadata().tracked = True  # TODO-MM-20220808: this will be the case, if we were able to curate the GL; I add this here to handle GLs that we tracked, before implementing the use of `analysis_metadata.json`
         self.__get_analysis_metadata().curated = True
 
-def build_list_of_command_line_arguments(config, list_of_gl_paths):
-    position = config['pos']
+def get_list_of_default_args(config, list_of_gl_paths):
+    if 'default_moma_arg' not in config:
+        getLogger().error("'default_moma_arg' is not defined in 'yaml_config_file'")
+        sys.exit(-1)
 
     cmd_args_dict_list = [{}]*len(list_of_gl_paths)
-    if 'default_moma_arg' in config:
-        for arg_dict in cmd_args_dict_list:
-            arg_dict.update(config['default_moma_arg'])
+    for arg_dict in cmd_args_dict_list:
+        arg_dict.update(config['default_moma_arg'])
+    return cmd_args_dict_list
+
+def build_list_of_command_line_arguments(config, list_of_gl_paths):
+    cmd_args_dict_list = get_list_of_default_args(config, list_of_gl_paths)
+
+    position = config['pos']
     for pos_ind in position:
         if 'moma_arg' in position[pos_ind]:
             arg_dict = position[pos_ind]['moma_arg']
@@ -330,8 +352,8 @@ def __main__():
     backup_postfix = "__BKP_" + time_stamp_of_run
     logger.info(f"Any backups created during this run are appended with postfix: {backup_postfix}")
     
-    gl_directory_paths = build_list_of_gl_directory_paths(config)
-    gl_tiff_paths = build_list_of_gl_tiff_file_paths(gl_directory_paths)
+    gl_directory_paths, config = build_list_of_gl_directory_paths(config)
+    gl_tiff_paths = build_list_of_gl_tiff_file_paths(gl_directory_paths, config)
     cmd_args_dict_list = build_list_of_command_line_arguments(config, gl_directory_paths)
 
     for tiff_path, gl_directory_path, args_dict in zip(gl_tiff_paths, gl_directory_paths, cmd_args_dict_list):
