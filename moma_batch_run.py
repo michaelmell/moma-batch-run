@@ -174,11 +174,15 @@ def keep_user_selected_gls(config: dict, selection: dict) -> dict:
     selected_pos_ind = [key for key in selection]
     for pos_ind in selected_pos_ind:
         if pos_ind not in cfg['pos']:
-            getLogger().error(f"Position {pos_ind} not defined in yaml 'yaml_config_file'")
+            getLogger().error(f"Position index {pos_ind} not defined in 'yaml_config_file'")
             sys.exit(-1)
     cfg['pos'] = {pos_ind:cfg['pos'][pos_ind] for pos_ind in selected_pos_ind}
     for pos_ind in cfg['pos']:
         selected_gl_ind = [key for key in selection[pos_ind]]
+        for gl_ind in selected_gl_ind:
+            if gl_ind not in cfg['pos'][pos_ind]['gl']:
+                getLogger().error(f"GL index {{{pos_ind}:{gl_ind}}} not defined in 'yaml_config_file'")
+                sys.exit(-1)
         cfg['pos'][pos_ind]['gl'] = {gl_ind:cfg['pos'][pos_ind]['gl'][gl_ind] for gl_ind in selected_gl_ind}
     return cfg
 
