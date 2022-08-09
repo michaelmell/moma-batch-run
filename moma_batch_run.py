@@ -270,7 +270,7 @@ def __main__():
                 logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already tracked for analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_track_data_path()}")
         elif cmd_args.curate:
             current_args_dict = {'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
-            if not gl_file_manager.get_gl_is_curated():
+            if not gl_file_manager.get_gl_is_curated() or cmd_args.select is not None:
                 run_moma_and_log(logger, tiff_path, current_args_dict)
                 gl_file_manager.set_gl_is_curated()
         elif cmd_args.export:

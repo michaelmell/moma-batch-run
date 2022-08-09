@@ -1,4 +1,6 @@
 #!/bin/bash
 
-PYTHON="$MM_PYTHON_ENVIRONMENT_PATH"
-exec "$PYTHON" "moma_batch_run.py" "$@"
+# PYTHON="$MM_PYTHON_ENVIRONMENT_PATH"
+# exec "$PYTHON" "moma_batch_run.py" "$@"
+source activate deepmoma
+python "moma_batch_run.py" "$@"
