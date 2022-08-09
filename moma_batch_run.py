@@ -168,7 +168,6 @@ def keep_user_selected_gls(config: dict, selection: dict) -> dict:
     cfg['pos'] = {pos_ind:cfg['pos'][pos_ind] for pos_ind in selected_pos_ind}
     for pos_ind in cfg['pos']:
         selected_gl_ind = [key for key in selection[pos_ind]]
-        print(f'{selected_gl_ind}')
         cfg['pos'][pos_ind]['gl'] = {gl_ind:cfg['pos'][pos_ind]['gl'][gl_ind] for gl_ind in selected_gl_ind}
     return cfg
 
@@ -257,7 +256,7 @@ def __main__():
 
         gl_file_manager = GlFileManager(gl_directory_path, analysisName)
 
-        if gl_file_manager.get_gl_export_data_path().exists():
+        if gl_file_manager.get_gl_export_data_path().exists() and cmd_args.select is None:
             logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already exported for analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
             continue
 
