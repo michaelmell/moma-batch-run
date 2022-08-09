@@ -38,7 +38,7 @@
             "program": "moma_batch_run.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args" : ["-curate","-select","{0:{12}, 15:{18}}","test_analysis.yaml"]
+            "args" : ["-curate","-select","{0:{12}, 15:{18}, 41:{1}}","test_analysis.yaml"]
         },
         {
             "name": "export",

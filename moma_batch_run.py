@@ -158,17 +158,24 @@ def build_list_of_command_line_arguments(config, list_of_gl_paths):
 def calculate_log_file_path(yaml_config_file_path: Path):
     return Path(os.path.join(yaml_config_file_path.parent,yaml_config_file_path.stem + '.log'))
 
+def getLogger() -> logging.Logger:
+    return logging.getLogger('default')
+
 def parse_gl_selection_string(selection_string: str) -> dict:
     try:
         selection_dict = eval(selection_string)
     except SyntaxError:
-        print(f"ERROR: Could not parse value for option '--select': {selection_string}")
+        getLogger().error(f"Could not parse value for option '--select': {selection_string}")
         sys.exit(-1)
     return selection_dict
 
 def keep_user_selected_gls(config: dict, selection: dict) -> dict:
     cfg = config
     selected_pos_ind = [key for key in selection]
+    for pos_ind in selected_pos_ind:
+        if pos_ind not in cfg['pos']:
+            getLogger().error(f"Position {pos_ind} not defined in yaml 'yaml_config_file'")
+            sys.exit(-1)
     cfg['pos'] = {pos_ind:cfg['pos'][pos_ind] for pos_ind in selected_pos_ind}
     for pos_ind in cfg['pos']:
         selected_gl_ind = [key for key in selection[pos_ind]]
@@ -196,7 +203,7 @@ def __main__():
     yaml_config_file_path = Path(cmd_args.yaml_config_file)
     
     if not yaml_config_file_path.exists():
-        print("ERROR: Check argument 'yaml_config_file'; file not found at: {yaml_config_file_path}")
+        getLogger().error("Check argument 'yaml_config_file'; file not found at: {yaml_config_file_path}")
         exit(-1)
 
     if cmd_args.log is not None:
@@ -207,16 +214,16 @@ def __main__():
     with open(log_file, 'a') as f:
         if not f.writable():
             if cmd_args.log is not None:
-                print("ERROR: Check argument '-log'; cannot write to the log-file at: {cmd_args.log}")
+                getLogger().error("Check argument '-log'; cannot write to the log-file at: {cmd_args.log}")
                 sys.exit(-1)
             else:
-                print("ERROR: Cannot write to the file log-file at: {cmd_args.log}")
+                getLogger().error("Cannot write to the file log-file at: {cmd_args.log}")
                 sys.exit(-1)
 
     gl_user_selection = {}
     if cmd_args.select is not None:
         if cmd_args.select is "":
-            print(f"ERROR: Value is empty for option '--select'.")
+            getLogger().error("Value is empty for option '--select'.")
             sys.exit(-1)
         gl_user_selection = parse_gl_selection_string(cmd_args.select)
 
