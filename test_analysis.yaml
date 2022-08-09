@@ -8,10 +8,10 @@ pos:
   0:
     gl: {12,
          23:
-          {moma_arg:
-            {tmin: 20,
-             tmax: 80}
-            }
+          # {moma_arg:
+          #   {tmin: 20,
+          #    tmax: 80}
+          #   }
         }
     # moma_arg: {tmin: 10, tmax: 100}
   15:
