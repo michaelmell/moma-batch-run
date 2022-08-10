@@ -71,8 +71,6 @@ def add_gl_path(gl_ind, gl_entry, pos_ind, pos_entry, config):
     gl_path=input_path
     gl_path+=("/Pos"+str(pos_ind))
     gl_path+="/Pos"+str(pos_ind)+"_"+"GL"+str(gl_ind)
-    if not gl_entry:
-        gl_entry = {}
     gl_entry.update({'gl_path': gl_path})
     return gl_entry
 
@@ -106,7 +104,7 @@ def for_each_gl_in_config(config: dict, fnc):
         if positions[pos_ind]: # GLs are defined for this position; iterate over them to generate list of paths
             for gl_ind in positions[pos_ind]['gl']:
                 updated_gl_entry = fnc(gl_ind, positions[pos_ind]['gl'][gl_ind], pos_ind, positions[pos_ind], config)
-                if updated_gl_entry: # only overwrite gl_entry, if method returns an updated version; this is not the case for e.g. validation methods
+                if updated_gl_entry is not None: # only overwrite gl_entry, if method returns an updated version; this is not the case for e.g. validation methods
                     config['pos'][pos_ind]['gl'][gl_ind] = updated_gl_entry
 
 def add_tiff_path(gl_ind, gl_entry, pos_ind, pos_entry, config):
@@ -231,6 +229,12 @@ def get_list_of_default_args(config, list_of_gl_paths):
         arg_dict.update(config['default_moma_arg'])
     return cmd_args_dict_list
 
+def initialize_gl_entry_to_dict(gl_ind, gl_entry, pos_ind, pos_entry, config):
+    if gl_entry is None:
+        return {}
+    else:
+        return gl_entry
+
 def all_default_args_were_overwritten(gl_moma_arg, default_moma_arg):
     for arg in default_moma_arg:
         if arg not in gl_moma_arg and not arg == 'analysis':
@@ -243,7 +247,7 @@ def validate_moma_arg(gl_moma_arg, default_moma_arg):
     if not all_default_args_were_overwritten(gl_moma_arg, default_moma_arg):
         raise ArgumentError("Nested instance of 'moma_arg' must overwrite all values in 'default_moma_arg' (except for the 'analysis' value).")
 
-def validate_moma_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
+def validate_moma_arg(gl_ind, gl_entry, pos_ind, pos_entry, config):
     if 'moma_arg' in pos_entry:
         try:
             validate_moma_arg(pos_entry['moma_arg'], config['default_moma_arg'])
@@ -257,10 +261,16 @@ def validate_moma_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
             getLogger().error(f'YAML config error in GL {{{pos_ind}:{gl_ind}}}: ' + str(e))
             sys.exit(-1)
 
+def append_to_gl_dict_list_new(gl_ind, gl_entry: dict, pos_ind, pos_entry: dict, config: dict, gl_dict_list: list) -> dict:
+    gl_copy = gl_entry.copy()
+    gl_dict_list.append(gl_entry)
+    assert gl_copy == gl_entry
+    return gl_entry
+
 def append_to_gl_dict_list(gl_entry: dict, gl_dicts: list) -> list:
     gl_dicts.append(gl_entry)
 
-def add_cmd_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
+def add_moma_arg(gl_ind, gl_entry, pos_ind, pos_entry, config):
     if 'moma_arg' in gl_entry:
         return
     elif 'moma_arg' in pos_entry:
@@ -401,14 +411,18 @@ def __main__():
     backup_postfix = "__BKP_" + time_stamp_of_run
     logger.info(f"Any backups created during this run are appended with postfix: {backup_postfix}")
     
+    for_each_gl_in_config(config, initialize_gl_entry_to_dict)
+    for_each_gl_in_config(config, validate_moma_arg)
+    for_each_gl_in_config(config, add_moma_arg)
     # gl_directory_paths, config = build_list_of_gl_directory_paths(config) # remove this
     for_each_gl_in_config(config, add_gl_path)
     # gl_tiff_paths = build_list_of_gl_tiff_file_paths(gl_directory_paths, config) # remove this
     for_each_gl_in_config(config, add_tiff_path)
     # cmd_args_dict_list = build_list_of_command_line_arguments(config, gl_directory_paths)
-    for_each_gl_in_config(config, validate_moma_args)
     gl_dicts = []
     for_each_gl_in_config(config, lambda gl_ind, gl_entry, pos_ind, pos_entry, config: append_to_gl_dict_list(gl_entry, gl_dicts))
+    # for_each_gl_in_config(config, lambda gl_ind, gl_entry, pos_ind, pos_entry, config: append_to_gl_dict_list_new(gl_ind, gl_entry, pos_ind, pos_entry, config, gl_dicts))
+    
 
     # for tiff_path, gl_directory_path, args_dict in zip(gl_tiff_paths, gl_directory_paths, cmd_args_dict_list):
     for gl in gl_dicts:
