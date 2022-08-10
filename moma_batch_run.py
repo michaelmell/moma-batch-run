@@ -105,9 +105,9 @@ def for_each_gl_in_config(config: dict, fnc):
     for pos_ind in positions:
         if positions[pos_ind]: # GLs are defined for this position; iterate over them to generate list of paths
             for gl_ind in positions[pos_ind]['gl']:
-                udpated_gl_entry = fnc(gl_ind, positions[pos_ind]['gl'][gl_ind], pos_ind, positions[pos_ind], config)
-                if udpated_gl_entry: # only overwrite gl_entry, if method returns an updated version; this is not the case for e.g. validation methods
-                    config['pos'][pos_ind]['gl'][gl_ind] = udpated_gl_entry
+                updated_gl_entry = fnc(gl_ind, positions[pos_ind]['gl'][gl_ind], pos_ind, positions[pos_ind], config)
+                if updated_gl_entry: # only overwrite gl_entry, if method returns an updated version; this is not the case for e.g. validation methods
+                    config['pos'][pos_ind]['gl'][gl_ind] = updated_gl_entry
 
 def add_tiff_path(gl_ind, gl_entry, pos_ind, pos_entry, config):
     gl_entry.update({'tiff_path': glob(gl_entry['gl_path']+'/*[0-9].tif')[0]})
@@ -257,6 +257,9 @@ def validate_moma_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
             getLogger().error(f'YAML config error in GL {{{pos_ind}:{gl_ind}}}: ' + str(e))
             sys.exit(-1)
 
+def append_to_gl_dict_list(gl_entry: dict, gl_dicts: list) -> list:
+    gl_dicts.append(gl_entry)
+
 def add_cmd_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
     if 'moma_arg' in gl_entry:
         return
@@ -404,9 +407,15 @@ def __main__():
     for_each_gl_in_config(config, add_tiff_path)
     # cmd_args_dict_list = build_list_of_command_line_arguments(config, gl_directory_paths)
     for_each_gl_in_config(config, validate_moma_args)
-    for_each_gl_in_config(config, add_cmd_args)
+    gl_dicts = []
+    for_each_gl_in_config(config, lambda gl_ind, gl_entry, pos_ind, pos_entry, config: append_to_gl_dict_list(gl_entry, gl_dicts))
 
-    for tiff_path, gl_directory_path, args_dict in zip(gl_tiff_paths, gl_directory_paths, cmd_args_dict_list):
+    # for tiff_path, gl_directory_path, args_dict in zip(gl_tiff_paths, gl_directory_paths, cmd_args_dict_list):
+    for gl in gl_dicts:
+        gl
+        tiff_path = gl['tiff_path']
+        gl_directory_path = gl['gl_path']
+        args_dict = ['moma_arg']
         current_args_dict = args_dict.copy()
         
         if 'analysis' not in current_args_dict:
