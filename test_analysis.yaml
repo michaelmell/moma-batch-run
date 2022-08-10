@@ -6,14 +6,17 @@ default_moma_arg:
   tmax: 5
 pos:
   0:
-    gl: {12,
-         23:
-          # {moma_arg:
-          #   {tmin: 20,
-          #    tmax: 80}
-          #   }
+    gl: {
+      12: {
+          # moma_arg: {analysis: 'test_analysis'}
+        },
+      23:
+      {moma_arg:
+        {tmin: 20,
+          tmax: 80}
         }
-    moma_arg: {tmin: 10, tmax: 100}
+    }
+    moma_arg: {analysis: 'test_analysis', tmin: 10, tmax: 100}
   15:
     gl: {4,
          18}

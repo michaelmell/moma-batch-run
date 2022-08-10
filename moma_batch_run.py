@@ -105,7 +105,9 @@ def for_each_gl_in_config(config: dict, fnc):
     for pos_ind in positions:
         if positions[pos_ind]: # GLs are defined for this position; iterate over them to generate list of paths
             for gl_ind in positions[pos_ind]['gl']:
-                config['pos'][pos_ind]['gl'][gl_ind] = fnc(gl_ind, positions[pos_ind]['gl'][gl_ind], pos_ind, positions[pos_ind], config)
+                udpated_gl_entry = fnc(gl_ind, positions[pos_ind]['gl'][gl_ind], pos_ind, positions[pos_ind], config)
+                if udpated_gl_entry: # only overwrite gl_entry, if method returns an updated version; this is not the case for e.g. validation methods
+                    config['pos'][pos_ind]['gl'][gl_ind] = udpated_gl_entry
 
 def add_tiff_path(gl_ind, gl_entry, pos_ind, pos_entry, config):
     gl_entry.update({'tiff_path': glob(gl_entry['gl_path']+'/*[0-9].tif')[0]})
@@ -233,17 +235,26 @@ def validate_moma_arg(gl_moma_arg, default_moma_arg):
     if 'analysis' in gl_moma_arg:
         raise ArgumentError("Nested instance of 'moma_arg' is not allowed to overwrite 'analysis' argument.")
 
-def add_cmd_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
+
+def validate_moma_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
     if 'moma_arg' in pos_entry:
         try:
             validate_moma_arg(pos_entry['moma_arg'], config['default_moma_arg'])
         except ArgumentError as e:
-            getLogger().error(e)
+            getLogger().error(f'YAML config error in Pos {{{pos_ind}}}: ' + str(e))
+            sys.exit(-1)
     if 'moma_arg' in gl_entry:
         try:
             validate_moma_arg(gl_entry['moma_arg'], config['default_moma_arg'])
         except ArgumentError as e:
             getLogger().error(f'YAML config error in GL {{{pos_ind}:{gl_ind}}}: ' + str(e))
+            sys.exit(-1)
+
+def add_cmd_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
+    if 'moma_arg' in gl_entry:
+        return
+    elif 'moma_arg' in pos_entry:
+        gl_entry['moma_arg'] = pos_entry['moma_arg']
     else:
         gl_entry['moma_arg'] = config['default_moma_arg']
     return gl_entry
@@ -380,11 +391,12 @@ def __main__():
     backup_postfix = "__BKP_" + time_stamp_of_run
     logger.info(f"Any backups created during this run are appended with postfix: {backup_postfix}")
     
-    gl_directory_paths, config = build_list_of_gl_directory_paths(config) # remove this
+    # gl_directory_paths, config = build_list_of_gl_directory_paths(config) # remove this
     for_each_gl_in_config(config, add_gl_path)
-    gl_tiff_paths = build_list_of_gl_tiff_file_paths(gl_directory_paths, config) # remove this
+    # gl_tiff_paths = build_list_of_gl_tiff_file_paths(gl_directory_paths, config) # remove this
     for_each_gl_in_config(config, add_tiff_path)
-    cmd_args_dict_list = build_list_of_command_line_arguments(config, gl_directory_paths)
+    # cmd_args_dict_list = build_list_of_command_line_arguments(config, gl_directory_paths)
+    for_each_gl_in_config(config, validate_moma_args)
     for_each_gl_in_config(config, add_cmd_args)
 
     for tiff_path, gl_directory_path, args_dict in zip(gl_tiff_paths, gl_directory_paths, cmd_args_dict_list):
