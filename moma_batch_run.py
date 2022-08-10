@@ -66,6 +66,16 @@ class StreamToLogger(object):
     def flush(self):
         pass
 
+def add_gl_path(gl_ind, gl_entry, pos_ind, pos_entry, config):
+    input_path = config['preprocessing_path']
+    gl_path=input_path
+    gl_path+=("/Pos"+str(pos_ind))
+    gl_path+="/Pos"+str(pos_ind)+"_"+"GL"+str(gl_ind)
+    if not gl_entry:
+        gl_entry = {}
+    gl_entry.update({'gl_path': gl_path})
+    return gl_entry
+
 def build_list_of_gl_directory_paths(config):
     input_path = config['preprocessing_path']
     positions = config['pos']
@@ -90,19 +100,18 @@ def get_gl_paths_for_position(input_path, positions, gl_paths, pos, config):
                 config['pos'][pos]['gl'][gl] = {}
             config['pos'][pos]['gl'][gl].update({'gl_path': gl_path})
 
-def do_for_gl_entry_in_config(config: dict, fnc):
+def for_each_gl_in_config(config: dict, fnc):
     positions = config['pos']
     for pos_ind in positions:
         if positions[pos_ind]: # GLs are defined for this position; iterate over them to generate list of paths
             for gl_ind in positions[pos_ind]['gl']:
-                fnc(positions[pos_ind]['gl'][gl_ind], pos_ind, gl_ind)
+                config['pos'][pos_ind]['gl'][gl_ind] = fnc(gl_ind, positions[pos_ind]['gl'][gl_ind], pos_ind, positions[pos_ind], config)
 
-def add_gl_tiff_path(gl_entry, pos_ind, gl_ind):
+def add_tiff_path(gl_ind, gl_entry, pos_ind, pos_entry, config):
     gl_entry.update({'tiff_path': glob(gl_entry['gl_path']+'/*[0-9].tif')[0]})
+    return gl_entry
 
 def build_list_of_gl_tiff_file_paths(gl_directory_paths: list, config: dict):
-    do_for_gl_entry_in_config(config, add_gl_tiff_path)
-
     gl_tiff_paths = []
     for path in gl_directory_paths:
         tiff_path = glob(path+'/*[0-9].tif')[0]
@@ -219,6 +228,25 @@ def get_list_of_default_args(config, list_of_gl_paths):
     for arg_dict in cmd_args_dict_list:
         arg_dict.update(config['default_moma_arg'])
     return cmd_args_dict_list
+
+def validate_moma_arg(gl_moma_arg, default_moma_arg):
+    if 'analysis' in gl_moma_arg:
+        raise ArgumentError("Nested instance of 'moma_arg' is not allowed to overwrite 'analysis' argument.")
+
+def add_cmd_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
+    if 'moma_arg' in pos_entry:
+        try:
+            validate_moma_arg(pos_entry['moma_arg'], config['default_moma_arg'])
+        except ArgumentError as e:
+            getLogger().error(e)
+    if 'moma_arg' in gl_entry:
+        try:
+            validate_moma_arg(gl_entry['moma_arg'], config['default_moma_arg'])
+        except ArgumentError as e:
+            getLogger().error(f'YAML config error in GL {{{pos_ind}:{gl_ind}}}: ' + str(e))
+    else:
+        gl_entry['moma_arg'] = config['default_moma_arg']
+    return gl_entry
 
 def build_list_of_command_line_arguments(config, list_of_gl_paths):
     cmd_args_dict_list = get_list_of_default_args(config, list_of_gl_paths)
@@ -352,9 +380,12 @@ def __main__():
     backup_postfix = "__BKP_" + time_stamp_of_run
     logger.info(f"Any backups created during this run are appended with postfix: {backup_postfix}")
     
-    gl_directory_paths, config = build_list_of_gl_directory_paths(config)
-    gl_tiff_paths = build_list_of_gl_tiff_file_paths(gl_directory_paths, config)
+    gl_directory_paths, config = build_list_of_gl_directory_paths(config) # remove this
+    for_each_gl_in_config(config, add_gl_path)
+    gl_tiff_paths = build_list_of_gl_tiff_file_paths(gl_directory_paths, config) # remove this
+    for_each_gl_in_config(config, add_tiff_path)
     cmd_args_dict_list = build_list_of_command_line_arguments(config, gl_directory_paths)
+    for_each_gl_in_config(config, add_cmd_args)
 
     for tiff_path, gl_directory_path, args_dict in zip(gl_tiff_paths, gl_directory_paths, cmd_args_dict_list):
         current_args_dict = args_dict.copy()
