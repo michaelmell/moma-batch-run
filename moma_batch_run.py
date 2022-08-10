@@ -247,7 +247,7 @@ def validate_moma_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
 def append_to_gl_dict_list(gl_entry: dict, gl_dicts: list) -> list:
     gl_dicts.append(gl_entry)
 
-def add_cmd_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
+def add_moma_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
     if 'moma_arg' in gl_entry:
         return
     elif 'moma_arg' in pos_entry:
@@ -378,7 +378,7 @@ def __main__():
     
     for_each_gl_in_config(config, initialize_gl_entry_to_dict)
     for_each_gl_in_config(config, validate_moma_args)
-    for_each_gl_in_config(config, add_cmd_args)
+    for_each_gl_in_config(config, add_moma_args)
     for_each_gl_in_config(config, add_gl_path)
     for_each_gl_in_config(config, add_tiff_path)
     gl_dicts = []
