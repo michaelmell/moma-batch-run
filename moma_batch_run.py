@@ -74,16 +74,6 @@ def add_gl_path(gl_ind, gl_entry, pos_ind, pos_entry, config):
     gl_entry.update({'gl_path': gl_path})
     return gl_entry
 
-def build_list_of_gl_directory_paths(config):
-    input_path = config['preprocessing_path']
-    positions = config['pos']
-
-    gl_paths=[]
-    for pos in positions:
-        get_gl_paths_for_position(input_path, positions, gl_paths, pos, config)
-    return gl_paths, config
-
-
 """
 This method caluclates the paths to the GL directories.
 """
@@ -110,13 +100,6 @@ def for_each_gl_in_config(config: dict, fnc):
 def add_tiff_path(gl_ind, gl_entry, pos_ind, pos_entry, config):
     gl_entry.update({'tiff_path': glob(gl_entry['gl_path']+'/*[0-9].tif')[0]})
     return gl_entry
-
-def build_list_of_gl_tiff_file_paths(gl_directory_paths: list, config: dict):
-    gl_tiff_paths = []
-    for path in gl_directory_paths:
-        tiff_path = glob(path+'/*[0-9].tif')[0]
-        gl_tiff_paths.append(tiff_path)
-    return gl_tiff_paths
 
 def build_arg_string(arg_dict):
     return ' '.join([f'-{key} {arg_dict[key]}' if arg_dict[key] is not None or '' else f'-{key}' for key in arg_dict])
@@ -261,12 +244,6 @@ def validate_moma_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
             getLogger().error(f'YAML config error in GL {{{pos_ind}:{gl_ind}}}: ' + str(e))
             sys.exit(-1)
 
-def append_to_gl_dict_list_new(gl_ind, gl_entry: dict, pos_ind, pos_entry: dict, config: dict, gl_dict_list: list) -> dict:
-    gl_copy = gl_entry.copy()
-    gl_dict_list.append(gl_entry)
-    assert gl_copy == gl_entry
-    return gl_entry
-
 def append_to_gl_dict_list(gl_entry: dict, gl_dicts: list) -> list:
     gl_dicts.append(gl_entry)
 
@@ -279,19 +256,6 @@ def add_cmd_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
         gl_entry['moma_arg'] = config['default_moma_arg']
     gl_entry['moma_arg'].update({'analysis': config['default_moma_arg']['analysis']})  # always set the analysis name to the default name
     return gl_entry
-
-def build_list_of_command_line_arguments(config, list_of_gl_paths):
-    cmd_args_dict_list = get_list_of_default_args(config, list_of_gl_paths)
-
-    position = config['pos']
-    for pos_ind in position:
-        if 'moma_arg' in position[pos_ind]:
-            arg_dict = position[pos_ind]['moma_arg']
-            for ind, path in enumerate(list_of_gl_paths):
-                pos_string = 'Pos'+ str(pos_ind)
-                if pos_string in path:
-                    cmd_args_dict_list[ind].update(arg_dict)
-    return cmd_args_dict_list
 
 def calculate_log_file_path(yaml_config_file_path: Path):
     return Path(os.path.join(yaml_config_file_path.parent,yaml_config_file_path.stem + '.log'))
@@ -415,15 +379,10 @@ def __main__():
     for_each_gl_in_config(config, initialize_gl_entry_to_dict)
     for_each_gl_in_config(config, validate_moma_args)
     for_each_gl_in_config(config, add_cmd_args)
-    # gl_directory_paths, config = build_list_of_gl_directory_paths(config) # remove this
     for_each_gl_in_config(config, add_gl_path)
-    # gl_tiff_paths = build_list_of_gl_tiff_file_paths(gl_directory_paths, config) # remove this
     for_each_gl_in_config(config, add_tiff_path)
-    # cmd_args_dict_list = build_list_of_command_line_arguments(config, gl_directory_paths)
     gl_dicts = []
     for_each_gl_in_config(config, lambda gl_ind, gl_entry, pos_ind, pos_entry, config: append_to_gl_dict_list(gl_entry, gl_dicts))
-    # for_each_gl_in_config(config, lambda gl_ind, gl_entry, pos_ind, pos_entry, config: append_to_gl_dict_list_new(gl_ind, gl_entry, pos_ind, pos_entry, config, gl_dicts))
-    
 
     for gl in gl_dicts:
         tiff_path = gl['tiff_path']
