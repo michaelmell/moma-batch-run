@@ -231,10 +231,17 @@ def get_list_of_default_args(config, list_of_gl_paths):
         arg_dict.update(config['default_moma_arg'])
     return cmd_args_dict_list
 
+def all_default_args_were_overwritten(gl_moma_arg, default_moma_arg):
+    for arg in default_moma_arg:
+        if arg not in gl_moma_arg and not arg == 'analysis':
+            return False
+    return True
+
 def validate_moma_arg(gl_moma_arg, default_moma_arg):
     if 'analysis' in gl_moma_arg:
         raise ArgumentError("Nested instance of 'moma_arg' is not allowed to overwrite 'analysis' argument.")
-
+    if not all_default_args_were_overwritten(gl_moma_arg, default_moma_arg):
+        raise ArgumentError("Nested instance of 'moma_arg' must overwrite all values in 'default_moma_arg' (except for the 'analysis' value).")
 
 def validate_moma_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
     if 'moma_arg' in pos_entry:
