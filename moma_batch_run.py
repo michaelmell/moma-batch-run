@@ -116,7 +116,7 @@ class AnalysisMetadata(object):
             'created': datetime.now(),
             'tracked': False,
             'curated': False}
-            self.save()
+            # self.save()
         
     @property
     def path(self):
@@ -141,6 +141,8 @@ class AnalysisMetadata(object):
         self.save()
 
     def save(self):
+        if not self.path.parent.exists():
+            self.path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.path, 'w') as fp:
             json.dump(self.value_dict, fp, indent=2, default=str)  # default=str is needed for the serialization of datetime object
 
@@ -169,12 +171,12 @@ class GlFileManager(object):
             os.rename(path_to_backup, backup_path)
 
     def get_gl_export_data_path(self) -> Path:
-        return Path(os.path.join(self.gl_directory_path, self.analysisName, self.analysisName+'__export_data'))
+        return Path(os.path.join(self.gl_directory_path, self.analysisName, 'export_data__' + self.analysisName))
 
     def get_gl_track_data_path(self) -> Path:
-        path = Path(os.path.join(self.gl_directory_path, self.analysisName, self.analysisName+'__track_data'))
-        if not path.exists():
-            path.mkdir(parents=True, exist_ok=True)
+        path = Path(os.path.join(self.gl_directory_path, self.analysisName, 'track_data__' + self.analysisName))
+        # if not path.exists():
+        #     path.mkdir(parents=True, exist_ok=True)
         return path
 
     def get_gl_is_curated(self) -> bool:
