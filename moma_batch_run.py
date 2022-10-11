@@ -301,25 +301,6 @@ def __main__():
     ### Get time stamp of current run; used e.g. in the name of backup files ###
     time_stamp_of_run = datetime.now().strftime('%Y%m%d-%H%M%S')
 
-    ### Initialize and configure logging ###
-    # instructions how to setup the logger to write to terminal can be found here:
-    # https://docs.python.org/3.8/howto/logging-cookbook.html
-    # and
-    # https://stackoverflow.com/a/38394903
-    logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s - %(levelname)s - %(message)s',
-                        filename=log_file,
-                        filemode='a')
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger('default').addHandler(console)
-    logger = logging.getLogger('default')
-    sys.stdout = StreamToLogger(logger, logging.INFO)
-    sys.stderr = StreamToLogger(logger, logging.ERROR)
-
-
     ### parse command line arguments ###
     parser = argparse.ArgumentParser()
     group = parser.add_argument_group('required (mutually exclusive) arguments')
@@ -354,7 +335,7 @@ def __main__():
         log_file = Path(cmd_args.log)
     else:
         log_file = calculate_log_file_path(yaml_config_file_path)
-    
+
     with open(log_file, 'a') as f:
         if not f.writable():
             if cmd_args.log is not None:
@@ -363,6 +344,8 @@ def __main__():
             else:
                 getLogger().error("Cannot write to the file log-file at: {cmd_args.log}")
                 sys.exit(-1)
+
+    initialize_logger(log_file)
 
     running_on_selection = cmd_args.select is not None
     gl_user_selection = {}
@@ -398,13 +381,13 @@ def __main__():
     if gl_user_selection:
         config = keep_user_selected_gls(config, gl_user_selection)
 
-    logger.info("START BATCH RUN.")
+    getLogger().info("START BATCH RUN.")
     batch_operation_type = 'DELETE' if cmd_args.delete else 'TRACK' if cmd_args.track else 'CURATE' if cmd_args.curate else 'EXPORT' if cmd_args.export else 'UNDEFINED ERROR'
-    logger.info(f"Run type: {batch_operation_type}")
+    getLogger().info(f"Run type: {batch_operation_type}")
     batch_command_string = ' '.join(sys.argv)
-    logger.info(f"Command: {batch_command_string}")
+    getLogger().info(f"Command: {batch_command_string}")
     backup_postfix = "__BKP_" + time_stamp_of_run
-    logger.info(f"Any backups created during this run are appended with postfix: {backup_postfix}")
+    getLogger().info(f"Any backups created during this run are appended with postfix: {backup_postfix}")
     
     for_each_gl_in_config(config, initialize_gl_entry_to_dict)
     for_each_gl_in_config(config, validate_moma_args)
@@ -432,33 +415,52 @@ def __main__():
                 gl_file_manager.move_track_data_to_backup(backup_postfix)
                 gl_file_manager.move_export_data_to_backup(backup_postfix)
                 current_args_dict.update({'headless':None, 'trackonly':None})
-                run_moma_and_log(logger, tiff_path, current_args_dict)
+                run_moma_and_log(getLogger(), tiff_path, current_args_dict)
                 gl_file_manager.set_gl_is_tracked()
             else:
-                logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already tracked for analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_track_data_path()}")
+                getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already tracked for analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_track_data_path()}")
         elif cmd_args.curate:
             if not gl_file_manager.get_gl_is_curated() or running_on_selection or is_forced_run:
                 if gl_file_manager.get_gl_is_curated() or gl_file_manager.get_gl_is_exported():  # gl_file_manager.get_gl_is_exported(): handles the case that the GL was exported without curation
                     gl_file_manager.copy_track_data_to_backup(backup_postfix)
                     gl_file_manager.move_export_data_to_backup(backup_postfix)
                 current_args_dict = {'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
-                run_moma_and_log(logger, tiff_path, current_args_dict)
+                run_moma_and_log(getLogger(), tiff_path, current_args_dict)
                 gl_file_manager.set_gl_is_curated()
             else:
-                logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already curated for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
+                getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already curated for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
         elif cmd_args.export:
             if not gl_file_manager.get_gl_is_exported() or is_forced_run:
                 gl_file_manager.move_export_data_to_backup(backup_postfix)
                 current_args_dict = {'headless':None, 'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
-                run_moma_and_log(logger, tiff_path, current_args_dict)
+                run_moma_and_log(getLogger(), tiff_path, current_args_dict)
             else:
-                logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already exported for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
+                getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already exported for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
         elif cmd_args.delete and is_fforced_run:
             if gl_file_manager.get_gl_analysis_path().exists():
-                logger.info(f"User selected operation {batch_operation_type}: Deleting analysis '{gl_file_manager.get_analysis_name()}' for GL: {gl_file_manager.get_gl_directory_path()}")
+                getLogger().info(f"User selected operation {batch_operation_type}: Deleting analysis '{gl_file_manager.get_analysis_name()}' for GL: {gl_file_manager.get_gl_directory_path()}")
                 shutil.rmtree(gl_file_manager.get_gl_analysis_path())
 
-    logger.info("FINISHED BATCH RUN.")
+    getLogger().info("FINISHED BATCH RUN.")
+
+def initialize_logger(log_file):
+    ### Initialize and configure logging ###
+    # instructions how to setup the logger to write to terminal can be found here:
+    # https://docs.python.org/3.8/howto/logging-cookbook.html
+    # and
+    # https://stackoverflow.com/a/38394903
+    logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    filename=log_file,
+                    filemode='a')
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    console.setFormatter(formatter)
+    logging.getLogger('default').addHandler(console)
+    logger = logging.getLogger('default')
+    sys.stdout = StreamToLogger(logger, logging.INFO)
+    sys.stderr = StreamToLogger(logger, logging.ERROR)
 
 def run_moma_and_log(logger, tiff_path, current_args_dict):
     args_string = build_arg_string(current_args_dict)
