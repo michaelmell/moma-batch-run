@@ -297,6 +297,33 @@ def keep_user_selected_gls(config: dict, selection: dict) -> dict:
         cfg['pos'][pos_ind]['gl'] = {gl_ind:cfg['pos'][pos_ind]['gl'][gl_ind] for gl_ind in selected_gl_ind}
     return cfg
 
+def initialize_logger(log_file):
+    ### Initialize and configure logging ###
+    # instructions how to setup the logger to write to terminal can be found here:
+    # https://docs.python.org/3.8/howto/logging-cookbook.html
+    # and
+    # https://stackoverflow.com/a/38394903
+    logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    filename=log_file,
+                    filemode='a')
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    console.setFormatter(formatter)
+    logging.getLogger('default').addHandler(console)
+    logger = logging.getLogger('default')
+    sys.stdout = StreamToLogger(logger, logging.INFO)
+    sys.stderr = StreamToLogger(logger, logging.ERROR)
+
+def run_moma_and_log(logger, tiff_path, current_args_dict):
+    args_string = build_arg_string(current_args_dict)
+    moma_command = f'moma {args_string} -i {tiff_path}'
+    logger.info("RUN MOMA: " + moma_command)
+    os.system(moma_command)
+    # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")  # this would output also MoMA output to the log file:
+    logger.info("FINISHED MOMA.")
+
 def __main__():
     ### Get time stamp of current run; used e.g. in the name of backup files ###
     time_stamp_of_run = datetime.now().strftime('%Y%m%d-%H%M%S')
@@ -442,33 +469,6 @@ def __main__():
                 shutil.rmtree(gl_file_manager.get_gl_analysis_path())
 
     getLogger().info("FINISHED BATCH RUN.")
-
-def initialize_logger(log_file):
-    ### Initialize and configure logging ###
-    # instructions how to setup the logger to write to terminal can be found here:
-    # https://docs.python.org/3.8/howto/logging-cookbook.html
-    # and
-    # https://stackoverflow.com/a/38394903
-    logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s',
-                    filename=log_file,
-                    filemode='a')
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger('default').addHandler(console)
-    logger = logging.getLogger('default')
-    sys.stdout = StreamToLogger(logger, logging.INFO)
-    sys.stderr = StreamToLogger(logger, logging.ERROR)
-
-def run_moma_and_log(logger, tiff_path, current_args_dict):
-    args_string = build_arg_string(current_args_dict)
-    moma_command = f'moma {args_string} -i {tiff_path}'
-    logger.info("RUN MOMA: " + moma_command)
-    os.system(moma_command)
-    # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")  # this would output also MoMA output to the log file:
-    logger.info("FINISHED MOMA.")
 
 if __name__ == "__main__":
     __main__()
