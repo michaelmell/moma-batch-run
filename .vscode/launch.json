@@ -92,7 +92,7 @@
             "program": "moma_batch_run.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args" : ["-f","-delete-analysis","test_analysis.yaml"]
+            "args" : ["-ff","-delete-analysis","test_analysis.yaml"]
         },
     ]
 }

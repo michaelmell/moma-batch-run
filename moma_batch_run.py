@@ -6,6 +6,7 @@ from pathlib import Path
 from datetime import datetime
 import os
 from distutils.dir_util import copy_tree
+import shutil
 import sys
 import argparse
 from glob import glob
@@ -147,8 +148,8 @@ class AnalysisMetadata(object):
             json.dump(self.value_dict, fp, indent=2, default=str)  # default=str is needed for the serialization of datetime object
 
 class GlFileManager(object):
-    def __init__(self, gl_directory_path, analysisName):
-        self.gl_directory_path = gl_directory_path
+    def __init__(self, gl_directory_path: str, analysisName: str):
+        self.gl_directory_path = Path(gl_directory_path)
         self.analysisName = analysisName
 
     def copy_track_data_to_backup(self, backup_dir_postfix):
@@ -170,13 +171,19 @@ class GlFileManager(object):
             backup_path = Path(str(path_to_backup) + backup_dir_postfix)
             os.rename(path_to_backup, backup_path)
 
+
+    def get_gl_directory_path(self) -> Path:
+        return self.gl_directory_path
+
+    def get_gl_analysis_path(self) -> Path:
+        path = Path(os.path.join(self.get_gl_directory_path(), self.analysisName))
+        return path
+
     def get_gl_export_data_path(self) -> Path:
-        return Path(os.path.join(self.gl_directory_path, self.analysisName, 'export_data__' + self.analysisName))
+        return Path(os.path.join(self.get_gl_analysis_path(), 'export_data__' + self.analysisName))
 
     def get_gl_track_data_path(self) -> Path:
-        path = Path(os.path.join(self.gl_directory_path, self.analysisName, 'track_data__' + self.analysisName))
-        # if not path.exists():
-        #     path.mkdir(parents=True, exist_ok=True)
+        path = Path(os.path.join(self.get_gl_analysis_path(), 'track_data__' + self.analysisName))
         return path
 
     def get_gl_is_curated(self) -> bool:
@@ -311,6 +318,8 @@ def __main__():
                     help="path to YAML file with dataset configuration")
     parser.add_argument("-f", "--force", action='store_true',
                     help="force the operation")
+    parser.add_argument("-ff", "--fforce", action='store_true',
+                    help="force operation when deleting data; e.g. with option '-delete-analysis'")
     cmd_args = parser.parse_args()
 
     yaml_config_file_path = Path(cmd_args.yaml_config_file)
@@ -360,11 +369,23 @@ def __main__():
 
     is_forced_run = cmd_args.force
     if is_forced_run:
-        reply = query_yes_no("Forced run will overwrite existing data (option '-f/--force'). Do you want to continue?", "no")
+        reply = query_yes_no("Forced run will OVERWRITE existing data (option '-f/--force'). Do you want to continue?", "no")
         if not reply:
             getLogger().info("Aborting forced run, because user replied 'no'. ")
             sys.exit(-1)
         getLogger().info("Performing forced run.")
+
+    is_fforced_run = cmd_args.fforce
+    if cmd_args.delete and is_fforced_run:
+        reply = query_yes_no("You are about to DELETE the analysis-folders in ALL specified GLs (option '-ff/--fforce'). Do you REALLY want to continue?", "no")
+        if not reply:
+            getLogger().info("Aborting deletion run, because user replied 'no'. ")
+            sys.exit(-1)
+        getLogger().info("Performing forced run.")
+    
+    if cmd_args.delete and not cmd_args.fforce:
+        getLogger().info("ERROR: Option '-delete-analysis' must be combined with option '-fforce'.")
+        sys.exit(-1)
 
     with open(cmd_args.yaml_config_file) as f:
         config = yaml.load(f, Loader=SafeLoader)
@@ -427,6 +448,11 @@ def __main__():
                 run_moma_and_log(logger, tiff_path, current_args_dict)
             else:
                 logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already exported for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
+        elif cmd_args.delete and is_fforced_run:
+            if gl_file_manager.get_gl_analysis_path().exists():
+                logger.info(f"User selected operation {batch_operation_type}: Deleting analysis '{gl_file_manager.get_analysis_name()}' for GL: {gl_file_manager.get_gl_directory_path()}")
+                shutil.rmtree(gl_file_manager.get_gl_analysis_path())
+
     logger.info("FINISHED BATCH RUN.")
 
 def run_moma_and_log(logger, tiff_path, current_args_dict):
