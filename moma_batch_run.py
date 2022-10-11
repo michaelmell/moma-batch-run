@@ -360,6 +360,8 @@ def __main__():
             sys.exit(-1)
         gl_user_selection = parse_gl_selection_string(cmd_args.select)
     
+    gl_dicts = parse_gls_to_process(cmd_args.yaml_config_file, gl_user_selection)
+
     is_forced_run = cmd_args.force
     if is_forced_run:
         reply = query_yes_no("Forced run will OVERWRITE existing data (option '-f/--force'). Do you want to continue?", "no")
@@ -379,11 +381,6 @@ def __main__():
     if cmd_args.delete and not cmd_args.fforce:
         getLogger().info("ERROR: Option '-delete-analysis' must be combined with option '-fforce'.")
         sys.exit(-1)
-
-    with open(cmd_args.yaml_config_file) as f:
-        config = yaml.load(f, Loader=SafeLoader)
-
-    gl_dicts = parse_gls_to_process(gl_user_selection, config)
 
     getLogger().info("START BATCH RUN.")
     batch_operation_type = 'DELETE' if cmd_args.delete else 'TRACK' if cmd_args.track else 'CURATE' if cmd_args.curate else 'EXPORT' if cmd_args.export else 'UNDEFINED ERROR'
@@ -439,12 +436,16 @@ def __main__():
 
     getLogger().info("FINISHED BATCH RUN.")
 
-def parse_gls_to_process(gl_user_selection, config):
+def parse_gls_to_process(yaml_config_file, gl_user_selection):
     '''
     Parses the GLs that will be processed.
     '''
+    with open(yaml_config_file) as f:
+        config = yaml.load(f, Loader=SafeLoader)
+
     if gl_user_selection:
         config = keep_user_selected_gls(config, gl_user_selection)
+
     for_each_gl_in_config(config, initialize_gl_entry_to_dict)
     for_each_gl_in_config(config, validate_moma_args)
     for_each_gl_in_config(config, add_moma_args)
@@ -452,6 +453,7 @@ def parse_gls_to_process(gl_user_selection, config):
     for_each_gl_in_config(config, add_tiff_path)
     gl_dicts = []
     for_each_gl_in_config(config, lambda gl_ind, gl_entry, pos_ind, pos_entry, config: append_to_gl_dict_list(gl_entry, gl_dicts))
+
     return gl_dicts
 
 def parse_cmd_arguments():
