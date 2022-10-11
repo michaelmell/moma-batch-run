@@ -383,8 +383,7 @@ def __main__():
     with open(cmd_args.yaml_config_file) as f:
         config = yaml.load(f, Loader=SafeLoader)
 
-    if gl_user_selection:
-        config = keep_user_selected_gls(config, gl_user_selection)
+    gl_dicts = parse_gls_to_process(gl_user_selection, config)
 
     getLogger().info("START BATCH RUN.")
     batch_operation_type = 'DELETE' if cmd_args.delete else 'TRACK' if cmd_args.track else 'CURATE' if cmd_args.curate else 'EXPORT' if cmd_args.export else 'UNDEFINED ERROR'
@@ -394,14 +393,6 @@ def __main__():
     backup_postfix = "__BKP_" + time_stamp_of_run
     getLogger().info(f"Any backups created during this run are appended with postfix: {backup_postfix}")
     
-    for_each_gl_in_config(config, initialize_gl_entry_to_dict)
-    for_each_gl_in_config(config, validate_moma_args)
-    for_each_gl_in_config(config, add_moma_args)
-    for_each_gl_in_config(config, add_gl_path)
-    for_each_gl_in_config(config, add_tiff_path)
-    gl_dicts = []
-    for_each_gl_in_config(config, lambda gl_ind, gl_entry, pos_ind, pos_entry, config: append_to_gl_dict_list(gl_entry, gl_dicts))
-
     for gl in gl_dicts:
         tiff_path = gl['tiff_path']
         gl_directory_path = gl['gl_path']
@@ -447,6 +438,21 @@ def __main__():
                 shutil.rmtree(gl_file_manager.get_gl_analysis_path())
 
     getLogger().info("FINISHED BATCH RUN.")
+
+def parse_gls_to_process(gl_user_selection, config):
+    '''
+    Parses the GLs that will be processed.
+    '''
+    if gl_user_selection:
+        config = keep_user_selected_gls(config, gl_user_selection)
+    for_each_gl_in_config(config, initialize_gl_entry_to_dict)
+    for_each_gl_in_config(config, validate_moma_args)
+    for_each_gl_in_config(config, add_moma_args)
+    for_each_gl_in_config(config, add_gl_path)
+    for_each_gl_in_config(config, add_tiff_path)
+    gl_dicts = []
+    for_each_gl_in_config(config, lambda gl_ind, gl_entry, pos_ind, pos_entry, config: append_to_gl_dict_list(gl_entry, gl_dicts))
+    return gl_dicts
 
 def parse_cmd_arguments():
     ### parse command line arguments ###
