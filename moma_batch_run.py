@@ -368,16 +368,14 @@ def __main__():
     gl_dicts = parse_gls_to_process(cmd_args.yaml_config_file, gl_user_selection)
     gls_to_process_string = '\n'.join([f"Pos{gl['pos_ind']}_GL{gl['gl_ind']}" for gl in gl_dicts])
 
-    is_forced_run = cmd_args.force
-    if is_forced_run:
+    if cmd_args.force:
         reply = query_yes_no("Forced run will OVERWRITE existing data (option '-f/--force'). Do you want to continue?", "no")
         if not reply:
             getLogger().info("Aborting forced run, because user replied 'no'. ")
             sys.exit(-1)
         getLogger().info("Performing forced run.")
 
-    is_fforced_run = cmd_args.fforce
-    if cmd_args.delete and is_fforced_run:
+    if cmd_args.delete and cmd_args.fforce:
         reply = query_yes_no(f"You are about to DELETE the analysis-folders in the GLs listed below. Do you REALLY want to continue? ", "no", trailing_string=f"\nSelected GLs:\n{gls_to_process_string}")
         if not reply:
             getLogger().info("Aborting deletion run, because user replied 'no'. ")
@@ -410,7 +408,7 @@ def __main__():
         gl_file_manager = GlFileManager(gl_directory_path, analysisName)
 
         if cmd_args.track:
-            if not gl_file_manager.get_gl_is_tracked() or is_forced_run:
+            if not gl_file_manager.get_gl_is_tracked() or cmd_args.force:
                 gl_file_manager.move_track_data_to_backup(backup_postfix)
                 gl_file_manager.move_export_data_to_backup(backup_postfix)
                 current_args_dict.update({'headless':None, 'trackonly':None})
@@ -419,7 +417,7 @@ def __main__():
             else:
                 getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already tracked for analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_track_data_path()}")
         elif cmd_args.curate:
-            if not gl_file_manager.get_gl_is_curated() or running_on_selection or is_forced_run:
+            if not gl_file_manager.get_gl_is_curated() or running_on_selection or cmd_args.force:
                 if gl_file_manager.get_gl_is_curated() or gl_file_manager.get_gl_is_exported():  # gl_file_manager.get_gl_is_exported(): handles the case that the GL was exported without curation
                     gl_file_manager.copy_track_data_to_backup(backup_postfix)
                     gl_file_manager.move_export_data_to_backup(backup_postfix)
@@ -429,13 +427,13 @@ def __main__():
             else:
                 getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already curated for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
         elif cmd_args.export:
-            if not gl_file_manager.get_gl_is_exported() or is_forced_run:
+            if not gl_file_manager.get_gl_is_exported() or cmd_args.force:
                 gl_file_manager.move_export_data_to_backup(backup_postfix)
                 current_args_dict = {'headless':None, 'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
                 run_moma_and_log(getLogger(), tiff_path, current_args_dict)
             else:
                 getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already exported for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
-        elif cmd_args.delete and is_fforced_run:
+        elif cmd_args.delete and cmd_args.fforce:
             if gl_file_manager.get_gl_analysis_path().exists():
                 getLogger().info(f"User selected operation {batch_operation_type}: Deleting analysis '{gl_file_manager.get_analysis_name()}' from GL: {gl_file_manager.get_gl_directory_path()}")
                 shutil.rmtree(gl_file_manager.get_gl_analysis_path())
