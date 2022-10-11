@@ -328,29 +328,7 @@ def __main__():
     ### Get time stamp of current run; used e.g. in the name of backup files ###
     time_stamp_of_run = datetime.now().strftime('%Y%m%d-%H%M%S')
 
-    ### parse command line arguments ###
-    parser = argparse.ArgumentParser()
-    group = parser.add_argument_group('required (mutually exclusive) arguments')
-    mxgroup = group.add_mutually_exclusive_group(required=True)
-    mxgroup.add_argument("-delete-analysis", "--delete-analysis", action='store_true', dest='delete',
-                    help="delete batch-tracking of GLs")
-    mxgroup.add_argument("-track", "--track", action='store_true',
-                    help="run batch-tracking of GLs")
-    mxgroup.add_argument("-curate", "--curate", action='store_true',
-                    help="run interactive curation of GLs")
-    mxgroup.add_argument("-export", "--export", action='store_true',
-                    help="run batch-export of tracking results")
-    parser.add_argument("-l", "--log", type=str,
-                    help="path to the log-file for this batch-run; derived from 'yaml_config_file' and stored next to it, if not specified")
-    parser.add_argument("-select", "--select", type=str,
-                    help="run on selection of GLs specified in Python dictionary-format; GLs must be defined in 'yaml_config_file'; example: \"{0:{1,2}, 3:{4,5}}\", where 0, 3 are position indices and 1, 2, 4, 5 are GL indices")
-    parser.add_argument("yaml_config_file", type=str,
-                    help="path to YAML file with dataset configuration")
-    parser.add_argument("-f", "--force", action='store_true',
-                    help="force the operation")
-    parser.add_argument("-ff", "--fforce", action='store_true',
-                    help="force operation when deleting data; e.g. with option '-delete-analysis'")
-    cmd_args = parser.parse_args()
+    cmd_args = parse_cmd_arguments()
 
     yaml_config_file_path = Path(cmd_args.yaml_config_file)
     
@@ -469,6 +447,32 @@ def __main__():
                 shutil.rmtree(gl_file_manager.get_gl_analysis_path())
 
     getLogger().info("FINISHED BATCH RUN.")
+
+def parse_cmd_arguments():
+    ### parse command line arguments ###
+    parser = argparse.ArgumentParser()
+    group = parser.add_argument_group('required (mutually exclusive) arguments')
+    mxgroup = group.add_mutually_exclusive_group(required=True)
+    mxgroup.add_argument("-delete-analysis", "--delete-analysis", action='store_true', dest='delete',
+                    help="delete batch-tracking of GLs")
+    mxgroup.add_argument("-track", "--track", action='store_true',
+                    help="run batch-tracking of GLs")
+    mxgroup.add_argument("-curate", "--curate", action='store_true',
+                    help="run interactive curation of GLs")
+    mxgroup.add_argument("-export", "--export", action='store_true',
+                    help="run batch-export of tracking results")
+    parser.add_argument("-l", "--log", type=str,
+                    help="path to the log-file for this batch-run; derived from 'yaml_config_file' and stored next to it, if not specified")
+    parser.add_argument("-select", "--select", type=str,
+                    help="run on selection of GLs specified in Python dictionary-format; GLs must be defined in 'yaml_config_file'; example: \"{0:{1,2}, 3:{4,5}}\", where 0, 3 are position indices and 1, 2, 4, 5 are GL indices")
+    parser.add_argument("yaml_config_file", type=str,
+                    help="path to YAML file with dataset configuration")
+    parser.add_argument("-f", "--force", action='store_true',
+                    help="force the operation")
+    parser.add_argument("-ff", "--fforce", action='store_true',
+                    help="force operation when deleting data; e.g. with option '-delete-analysis'")
+    cmd_args = parser.parse_args()
+    return cmd_args
 
 if __name__ == "__main__":
     __main__()
