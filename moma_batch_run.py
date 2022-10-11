@@ -418,8 +418,9 @@ def __main__():
                 gl_file_manager.set_gl_is_curated()
             else:
                 logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already curated for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
-        elif cmd_args.export or is_forced_run:
-            if not gl_file_manager.get_gl_is_exported():
+        elif cmd_args.export:
+            if not gl_file_manager.get_gl_is_exported() or is_forced_run:
+                gl_file_manager.move_export_data_to_backup(backup_postfix)
                 current_args_dict = {'headless':None, 'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
                 run_moma_and_log(logger, tiff_path, current_args_dict)
             else:
