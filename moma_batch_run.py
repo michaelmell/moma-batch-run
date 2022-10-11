@@ -298,7 +298,29 @@ def keep_user_selected_gls(config: dict, selection: dict) -> dict:
     return cfg
 
 def __main__():
+    ### Get time stamp of current run; used e.g. in the name of backup files ###
     time_stamp_of_run = datetime.now().strftime('%Y%m%d-%H%M%S')
+
+    ### Initialize and configure logging ###
+    # instructions how to setup the logger to write to terminal can be found here:
+    # https://docs.python.org/3.8/howto/logging-cookbook.html
+    # and
+    # https://stackoverflow.com/a/38394903
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s - %(levelname)s - %(message)s',
+                        filename=log_file,
+                        filemode='a')
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    console.setFormatter(formatter)
+    logging.getLogger('default').addHandler(console)
+    logger = logging.getLogger('default')
+    sys.stdout = StreamToLogger(logger, logging.INFO)
+    sys.stderr = StreamToLogger(logger, logging.ERROR)
+
+
+    ### parse command line arguments ###
     parser = argparse.ArgumentParser()
     group = parser.add_argument_group('required (mutually exclusive) arguments')
     mxgroup = group.add_mutually_exclusive_group(required=True)
@@ -350,23 +372,6 @@ def __main__():
             sys.exit(-1)
         gl_user_selection = parse_gl_selection_string(cmd_args.select)
     
-    # instructions how to setup the logger to write to terminal can be found here:
-    # https://docs.python.org/3.8/howto/logging-cookbook.html
-    # and
-    # https://stackoverflow.com/a/38394903
-    logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s - %(levelname)s - %(message)s',
-                        filename=log_file,
-                        filemode='a')
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger('default').addHandler(console)
-    logger = logging.getLogger('default')
-    sys.stdout = StreamToLogger(logger, logging.INFO)
-    sys.stderr = StreamToLogger(logger, logging.ERROR)
-
     is_forced_run = cmd_args.force
     if is_forced_run:
         reply = query_yes_no("Forced run will OVERWRITE existing data (option '-f/--force'). Do you want to continue?", "no")
