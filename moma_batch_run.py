@@ -295,6 +295,8 @@ def __main__():
     parser = argparse.ArgumentParser()
     group = parser.add_argument_group('required (mutually exclusive) arguments')
     mxgroup = group.add_mutually_exclusive_group(required=True)
+    mxgroup.add_argument("-delete-analysis", "--delete-analysis", action='store_true', dest='delete',
+                    help="delete batch-tracking of GLs")
     mxgroup.add_argument("-track", "--track", action='store_true',
                     help="run batch-tracking of GLs")
     mxgroup.add_argument("-curate", "--curate", action='store_true',
@@ -371,7 +373,7 @@ def __main__():
         config = keep_user_selected_gls(config, gl_user_selection)
 
     logger.info("START BATCH RUN.")
-    batch_operation_type = 'TRACK' if cmd_args.track else 'CURATE' if cmd_args.curate else 'EXPORT' if cmd_args.export else 'UNDEFINED ERROR'
+    batch_operation_type = 'DELETE' if cmd_args.delete else 'TRACK' if cmd_args.track else 'CURATE' if cmd_args.curate else 'EXPORT' if cmd_args.export else 'UNDEFINED ERROR'
     logger.info(f"Run type: {batch_operation_type}")
     batch_command_string = ' '.join(sys.argv)
     logger.info(f"Command: {batch_command_string}")
