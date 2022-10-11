@@ -6,6 +6,7 @@ from pathlib import Path
 from datetime import datetime
 import os
 from distutils.dir_util import copy_tree
+import shutil
 import sys
 import argparse
 from glob import glob
@@ -15,7 +16,7 @@ import yaml
 from yaml.loader import SafeLoader
 
 
-def query_yes_no(question, default="yes"):
+def query_yes_no(question, default="yes", trailing_string=""):
     "MM-20220809: This was taken from: https://stackoverflow.com/a/3041990"
 
     """Ask a yes/no question via raw_input() and return their answer.
@@ -29,16 +30,16 @@ def query_yes_no(question, default="yes"):
     """
     valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
     if default is None:
-        prompt = " [y/n] "
+        prompt = "[y/n] "
     elif default == "yes":
-        prompt = " [Y/n] "
+        prompt = "[Y/n] "
     elif default == "no":
-        prompt = " [y/N] "
+        prompt = "[y/N] "
     else:
         raise ValueError("invalid default answer: '%s'" % default)
 
     while True:
-        getLogger().warning(question + prompt)
+        getLogger().warning(question + prompt + trailing_string)
         choice = input().lower()
         if default is not None and choice == "":
             return valid[default]
@@ -101,6 +102,11 @@ def add_tiff_path(gl_ind, gl_entry, pos_ind, pos_entry, config):
     gl_entry.update({'tiff_path': glob(gl_entry['gl_path']+'/*[0-9].tif')[0]})
     return gl_entry
 
+def add_pos_and_gl_ind(gl_ind, gl_entry, pos_ind, pos_entry, config):
+    gl_entry['gl_ind'] = gl_ind
+    gl_entry['pos_ind'] = pos_ind
+    return gl_entry
+
 def build_arg_string(arg_dict):
     return ' '.join([f'-{key} {arg_dict[key]}' if arg_dict[key] is not None or '' else f'-{key}' for key in arg_dict])
 
@@ -147,8 +153,8 @@ class AnalysisMetadata(object):
             json.dump(self.value_dict, fp, indent=2, default=str)  # default=str is needed for the serialization of datetime object
 
 class GlFileManager(object):
-    def __init__(self, gl_directory_path, analysisName):
-        self.gl_directory_path = gl_directory_path
+    def __init__(self, gl_directory_path: str, analysisName: str):
+        self.gl_directory_path = Path(gl_directory_path)
         self.analysisName = analysisName
 
     def copy_track_data_to_backup(self, backup_dir_postfix):
@@ -170,13 +176,19 @@ class GlFileManager(object):
             backup_path = Path(str(path_to_backup) + backup_dir_postfix)
             os.rename(path_to_backup, backup_path)
 
+
+    def get_gl_directory_path(self) -> Path:
+        return self.gl_directory_path
+
+    def get_gl_analysis_path(self) -> Path:
+        path = Path(os.path.join(self.get_gl_directory_path(), self.analysisName))
+        return path
+
     def get_gl_export_data_path(self) -> Path:
-        return Path(os.path.join(self.gl_directory_path, self.analysisName, 'export_data__' + self.analysisName))
+        return Path(os.path.join(self.get_gl_analysis_path(), 'export_data__' + self.analysisName))
 
     def get_gl_track_data_path(self) -> Path:
-        path = Path(os.path.join(self.gl_directory_path, self.analysisName, 'track_data__' + self.analysisName))
-        # if not path.exists():
-        #     path.mkdir(parents=True, exist_ok=True)
+        path = Path(os.path.join(self.get_gl_analysis_path(), 'track_data__' + self.analysisName))
         return path
 
     def get_gl_is_curated(self) -> bool:
@@ -290,26 +302,38 @@ def keep_user_selected_gls(config: dict, selection: dict) -> dict:
         cfg['pos'][pos_ind]['gl'] = {gl_ind:cfg['pos'][pos_ind]['gl'][gl_ind] for gl_ind in selected_gl_ind}
     return cfg
 
+def initialize_logger(log_file):
+    ### Initialize and configure logging ###
+    # instructions how to setup the logger to write to terminal can be found here:
+    # https://docs.python.org/3.8/howto/logging-cookbook.html
+    # and
+    # https://stackoverflow.com/a/38394903
+    logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    filename=log_file,
+                    filemode='a')
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    console.setFormatter(formatter)
+    logging.getLogger('default').addHandler(console)
+    logger = logging.getLogger('default')
+    sys.stdout = StreamToLogger(logger, logging.INFO)
+    sys.stderr = StreamToLogger(logger, logging.ERROR)
+
+def run_moma_and_log(logger, tiff_path, current_args_dict):
+    args_string = build_arg_string(current_args_dict)
+    moma_command = f'moma {args_string} -i {tiff_path}'
+    logger.info("RUN MOMA: " + moma_command)
+    os.system(moma_command)
+    # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")  # this would output also MoMA output to the log file:
+    logger.info("FINISHED MOMA.")
+
 def __main__():
+    ### Get time stamp of current run; used e.g. in the name of backup files ###
     time_stamp_of_run = datetime.now().strftime('%Y%m%d-%H%M%S')
-    parser = argparse.ArgumentParser()
-    group = parser.add_argument_group('required (mutually exclusive) arguments')
-    mxgroup = group.add_mutually_exclusive_group(required=True)
-    mxgroup.add_argument("-track", "--track", action='store_true',
-                    help="run batch-tracking of GLs")
-    mxgroup.add_argument("-curate", "--curate", action='store_true',
-                    help="run interactive curation of GLs")
-    mxgroup.add_argument("-export", "--export", action='store_true',
-                    help="run batch-export of tracking results")
-    parser.add_argument("-l", "--log", type=str,
-                    help="path to the log-file for this batch-run; derived from 'yaml_config_file' and stored next to it, if not specified")
-    parser.add_argument("-select", "--select", type=str,
-                    help="run on selection of GLs specified in Python dictionary-format; GLs must be defined in 'yaml_config_file'; example: \"{0:{1,2}, 3:{4,5}}\", where 0, 3 are position indices and 1, 2, 4, 5 are GL indices")
-    parser.add_argument("yaml_config_file", type=str,
-                    help="path to YAML file with dataset configuration")
-    parser.add_argument("-f", "--force", action='store_true',
-                    help="force the operation")
-    cmd_args = parser.parse_args()
+
+    cmd_args = parse_cmd_arguments()
 
     yaml_config_file_path = Path(cmd_args.yaml_config_file)
     
@@ -321,7 +345,7 @@ def __main__():
         log_file = Path(cmd_args.log)
     else:
         log_file = calculate_log_file_path(yaml_config_file_path)
-    
+
     with open(log_file, 'a') as f:
         if not f.writable():
             if cmd_args.log is not None:
@@ -331,6 +355,8 @@ def __main__():
                 getLogger().error("Cannot write to the file log-file at: {cmd_args.log}")
                 sys.exit(-1)
 
+    initialize_logger(log_file)
+
     running_on_selection = cmd_args.select is not None
     gl_user_selection = {}
     if running_on_selection:
@@ -339,53 +365,35 @@ def __main__():
             sys.exit(-1)
         gl_user_selection = parse_gl_selection_string(cmd_args.select)
     
-    # instructions how to setup the logger to write to terminal can be found here:
-    # https://docs.python.org/3.8/howto/logging-cookbook.html
-    # and
-    # https://stackoverflow.com/a/38394903
-    logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s - %(levelname)s - %(message)s',
-                        filename=log_file,
-                        filemode='a')
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger('default').addHandler(console)
-    logger = logging.getLogger('default')
-    sys.stdout = StreamToLogger(logger, logging.INFO)
-    sys.stderr = StreamToLogger(logger, logging.ERROR)
+    gl_dicts = parse_gls_to_process(cmd_args.yaml_config_file, gl_user_selection)
+    gls_to_process_string = '\n'.join([f"Pos{gl['pos_ind']}_GL{gl['gl_ind']}" for gl in gl_dicts])
 
-    is_forced_run = cmd_args.force
-    if is_forced_run:
-        reply = query_yes_no("Forced run will overwrite existing data (option '-f/--force'). Do you want to continue?", "no")
+    if cmd_args.force:
+        reply = query_yes_no("Forced run will OVERWRITE existing data (option '-f/--force'). Do you want to continue?", "no")
         if not reply:
             getLogger().info("Aborting forced run, because user replied 'no'. ")
             sys.exit(-1)
         getLogger().info("Performing forced run.")
 
-    with open(cmd_args.yaml_config_file) as f:
-        config = yaml.load(f, Loader=SafeLoader)
-
-    if gl_user_selection:
-        config = keep_user_selected_gls(config, gl_user_selection)
-
-    logger.info("START BATCH RUN.")
-    batch_operation_type = 'TRACK' if cmd_args.track else 'CURATE' if cmd_args.curate else 'EXPORT' if cmd_args.export else 'UNDEFINED ERROR'
-    logger.info(f"Run type: {batch_operation_type}")
-    batch_command_string = ' '.join(sys.argv)
-    logger.info(f"Command: {batch_command_string}")
-    backup_postfix = "__BKP_" + time_stamp_of_run
-    logger.info(f"Any backups created during this run are appended with postfix: {backup_postfix}")
+    if cmd_args.delete and cmd_args.fforce:
+        reply = query_yes_no(f"You are about to DELETE the analysis-folders in the GLs listed below. Do you REALLY want to continue? ", "no", trailing_string=f"\nSelected GLs:\n{gls_to_process_string}")
+        if not reply:
+            getLogger().info("Aborting deletion run, because user replied 'no'. ")
+            sys.exit(-1)
+        getLogger().info("Performing forced run.")
     
-    for_each_gl_in_config(config, initialize_gl_entry_to_dict)
-    for_each_gl_in_config(config, validate_moma_args)
-    for_each_gl_in_config(config, add_moma_args)
-    for_each_gl_in_config(config, add_gl_path)
-    for_each_gl_in_config(config, add_tiff_path)
-    gl_dicts = []
-    for_each_gl_in_config(config, lambda gl_ind, gl_entry, pos_ind, pos_entry, config: append_to_gl_dict_list(gl_entry, gl_dicts))
+    if cmd_args.delete and not cmd_args.fforce:
+        getLogger().info("ERROR: Option '-delete-analysis' must be combined with option '-fforce'.")
+        sys.exit(-1)
 
+    getLogger().info("START BATCH RUN.")
+    batch_operation_type = 'DELETE' if cmd_args.delete else 'TRACK' if cmd_args.track else 'CURATE' if cmd_args.curate else 'EXPORT' if cmd_args.export else 'UNDEFINED ERROR'
+    getLogger().info(f"Run type: {batch_operation_type}")
+    batch_command_string = ' '.join(sys.argv)
+    getLogger().info(f"Command: {batch_command_string}")
+    backup_postfix = "__BKP_" + time_stamp_of_run
+    getLogger().info(f"Any backups created during this run are appended with postfix: {backup_postfix}")
+    
     for gl in gl_dicts:
         tiff_path = gl['tiff_path']
         gl_directory_path = gl['gl_path']
@@ -400,40 +408,84 @@ def __main__():
         gl_file_manager = GlFileManager(gl_directory_path, analysisName)
 
         if cmd_args.track:
-            if not gl_file_manager.get_gl_is_tracked() or is_forced_run:
+            if not gl_file_manager.get_gl_is_tracked() or cmd_args.force:
                 gl_file_manager.move_track_data_to_backup(backup_postfix)
                 gl_file_manager.move_export_data_to_backup(backup_postfix)
                 current_args_dict.update({'headless':None, 'trackonly':None})
-                run_moma_and_log(logger, tiff_path, current_args_dict)
+                run_moma_and_log(getLogger(), tiff_path, current_args_dict)
                 gl_file_manager.set_gl_is_tracked()
             else:
-                logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already tracked for analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_track_data_path()}")
+                getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already tracked for analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_track_data_path()}")
         elif cmd_args.curate:
-            if not gl_file_manager.get_gl_is_curated() or running_on_selection or is_forced_run:
+            if not gl_file_manager.get_gl_is_curated() or running_on_selection or cmd_args.force:
                 if gl_file_manager.get_gl_is_curated() or gl_file_manager.get_gl_is_exported():  # gl_file_manager.get_gl_is_exported(): handles the case that the GL was exported without curation
                     gl_file_manager.copy_track_data_to_backup(backup_postfix)
                     gl_file_manager.move_export_data_to_backup(backup_postfix)
                 current_args_dict = {'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
-                run_moma_and_log(logger, tiff_path, current_args_dict)
+                run_moma_and_log(getLogger(), tiff_path, current_args_dict)
                 gl_file_manager.set_gl_is_curated()
             else:
-                logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already curated for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
+                getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already curated for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
         elif cmd_args.export:
-            if not gl_file_manager.get_gl_is_exported() or is_forced_run:
+            if not gl_file_manager.get_gl_is_exported() or cmd_args.force:
                 gl_file_manager.move_export_data_to_backup(backup_postfix)
                 current_args_dict = {'headless':None, 'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
-                run_moma_and_log(logger, tiff_path, current_args_dict)
+                run_moma_and_log(getLogger(), tiff_path, current_args_dict)
             else:
-                logger.warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already exported for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
-    logger.info("FINISHED BATCH RUN.")
+                getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already exported for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
+        elif cmd_args.delete and cmd_args.fforce:
+            if gl_file_manager.get_gl_analysis_path().exists():
+                getLogger().info(f"User selected operation {batch_operation_type}: Deleting analysis '{gl_file_manager.get_analysis_name()}' from GL: {gl_file_manager.get_gl_directory_path()}")
+                shutil.rmtree(gl_file_manager.get_gl_analysis_path())
 
-def run_moma_and_log(logger, tiff_path, current_args_dict):
-    args_string = build_arg_string(current_args_dict)
-    moma_command = f'moma {args_string} -i {tiff_path}'
-    logger.info("RUN MOMA: " + moma_command)
-    os.system(moma_command)
-    # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")  # this would output also MoMA output to the log file:
-    logger.info("FINISHED MOMA.")
+    getLogger().info("FINISHED BATCH RUN.")
+
+def parse_gls_to_process(yaml_config_file, gl_user_selection):
+    '''
+    Parses the GLs that will be processed.
+    '''
+    with open(yaml_config_file) as f:
+        config = yaml.load(f, Loader=SafeLoader)
+
+    if gl_user_selection:
+        config = keep_user_selected_gls(config, gl_user_selection)
+
+    for_each_gl_in_config(config, initialize_gl_entry_to_dict)
+    for_each_gl_in_config(config, validate_moma_args)
+    for_each_gl_in_config(config, add_moma_args)
+    for_each_gl_in_config(config, add_gl_path)
+    for_each_gl_in_config(config, add_tiff_path)
+    for_each_gl_in_config(config, add_pos_and_gl_ind)
+    gl_dicts = []
+    for_each_gl_in_config(config, lambda gl_ind, gl_entry, pos_ind, pos_entry, config: append_to_gl_dict_list(gl_entry, gl_dicts))
+
+    return gl_dicts
+
+def parse_cmd_arguments():
+    ### parse command line arguments ###
+    parser = argparse.ArgumentParser()
+    group = parser.add_argument_group('required (mutually exclusive) arguments')
+    mxgroup = group.add_mutually_exclusive_group(required=True)
+    mxgroup.add_argument("-delete-analysis", "--delete-analysis", action='store_true', dest='delete',
+                    help="delete batch-tracking of GLs")
+    mxgroup.add_argument("-track", "--track", action='store_true',
+                    help="run batch-tracking of GLs")
+    mxgroup.add_argument("-curate", "--curate", action='store_true',
+                    help="run interactive curation of GLs")
+    mxgroup.add_argument("-export", "--export", action='store_true',
+                    help="run batch-export of tracking results")
+    parser.add_argument("-l", "--log", type=str,
+                    help="path to the log-file for this batch-run; derived from 'yaml_config_file' and stored next to it, if not specified")
+    parser.add_argument("-select", "--select", type=str,
+                    help="run on selection of GLs specified in Python dictionary-format; GLs must be defined in 'yaml_config_file'; example: \"{0:{1,2}, 3:{4,5}}\", where 0, 3 are position indices and 1, 2, 4, 5 are GL indices")
+    parser.add_argument("yaml_config_file", type=str,
+                    help="path to YAML file with dataset configuration")
+    parser.add_argument("-f", "--force", action='store_true',
+                    help="force the operation")
+    parser.add_argument("-ff", "--fforce", action='store_true',
+                    help="force operation when deleting data; e.g. with option '-delete-analysis'")
+    cmd_args = parser.parse_args()
+    return cmd_args
 
 if __name__ == "__main__":
     __main__()
