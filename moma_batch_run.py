@@ -16,7 +16,7 @@ import yaml
 from yaml.loader import SafeLoader
 
 
-def query_yes_no(question, default="yes"):
+def query_yes_no(question, default="yes", trailing_string=""):
     "MM-20220809: This was taken from: https://stackoverflow.com/a/3041990"
 
     """Ask a yes/no question via raw_input() and return their answer.
@@ -30,16 +30,16 @@ def query_yes_no(question, default="yes"):
     """
     valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
     if default is None:
-        prompt = " [y/n] "
+        prompt = "[y/n] "
     elif default == "yes":
-        prompt = " [Y/n] "
+        prompt = "[Y/n] "
     elif default == "no":
-        prompt = " [y/N] "
+        prompt = "[y/N] "
     else:
         raise ValueError("invalid default answer: '%s'" % default)
 
     while True:
-        getLogger().warning(question + prompt)
+        getLogger().warning(question + prompt + trailing_string)
         choice = input().lower()
         if default is not None and choice == "":
             return valid[default]
@@ -100,6 +100,11 @@ def for_each_gl_in_config(config: dict, fnc):
 
 def add_tiff_path(gl_ind, gl_entry, pos_ind, pos_entry, config):
     gl_entry.update({'tiff_path': glob(gl_entry['gl_path']+'/*[0-9].tif')[0]})
+    return gl_entry
+
+def add_pos_and_gl_ind(gl_ind, gl_entry, pos_ind, pos_entry, config):
+    gl_entry['gl_ind'] = gl_ind
+    gl_entry['pos_ind'] = pos_ind
     return gl_entry
 
 def build_arg_string(arg_dict):
@@ -361,6 +366,7 @@ def __main__():
         gl_user_selection = parse_gl_selection_string(cmd_args.select)
     
     gl_dicts = parse_gls_to_process(cmd_args.yaml_config_file, gl_user_selection)
+    gls_to_process_string = '\n'.join([f"Pos{gl['pos_ind']}_GL{gl['gl_ind']}" for gl in gl_dicts])
 
     is_forced_run = cmd_args.force
     if is_forced_run:
@@ -372,7 +378,7 @@ def __main__():
 
     is_fforced_run = cmd_args.fforce
     if cmd_args.delete and is_fforced_run:
-        reply = query_yes_no("You are about to DELETE the analysis-folders in ALL specified GLs (option '-ff/--fforce'). Do you REALLY want to continue?", "no")
+        reply = query_yes_no(f"You are about to DELETE the analysis-folders in the GLs listed below. Do you REALLY want to continue? ", "no", trailing_string=f"\nSelected GLs:\n{gls_to_process_string}")
         if not reply:
             getLogger().info("Aborting deletion run, because user replied 'no'. ")
             sys.exit(-1)
@@ -451,6 +457,7 @@ def parse_gls_to_process(yaml_config_file, gl_user_selection):
     for_each_gl_in_config(config, add_moma_args)
     for_each_gl_in_config(config, add_gl_path)
     for_each_gl_in_config(config, add_tiff_path)
+    for_each_gl_in_config(config, add_pos_and_gl_ind)
     gl_dicts = []
     for_each_gl_in_config(config, lambda gl_ind, gl_entry, pos_ind, pos_entry, config: append_to_gl_dict_list(gl_entry, gl_dicts))
 
