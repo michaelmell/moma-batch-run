@@ -330,10 +330,19 @@ def run_moma_and_log(logger, tiff_path, current_args_dict):
     logger.info("RUN MOMA: " + moma_command)
     # moma_command = f'moma {args_string} -i {tiff_path}'
     # os.system(moma_command)
-    moma_process = subprocess.Popen(['moma'] + args_string.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+
+    def preexec(): # Don't forward signals.
+        os.setpgrp()
+
+    moma_process = subprocess.Popen(['moma'] + args_string.split(),
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT,
+                                    universal_newlines=True,
+                                    preexec_fn=preexec,
+                                    # creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+                                    )
     for line in moma_process.stdout:
         sys.stdout.write(line)
-        # logfile.write(line)
     moma_process.wait()
     # stream = moma_process.communicate()[0]
     return_code = moma_process.returncode
@@ -341,16 +350,22 @@ def run_moma_and_log(logger, tiff_path, current_args_dict):
     logger.info("FINISHED MOMA.")
     return return_code
 
-def handler(signum, frame):
+def handler(signum, frame, abortObject):
     getLogger().info("Ctrl-c was pressed. Do you really want to abort execution? [y/N]")
     user_response = input()
     if user_response is 'y':
         getLogger().info("User selected 'y'. Stopping execution.")
-        sys.exit(1)
+        abortObject.abortSignaled = True
+        # sys.exit(1)
     getLogger().info("User selected 'n'. Continuing execution.")
 
+class AbortObject(object):
+    abortSignaled = False
+
 def __main__():
-    signal.signal(signal.SIGINT, handler)
+    abortObj = AbortObject()
+    abortObj.abortSignaled = False
+    signal.signal(signal.SIGINT, lambda signum, frame: handler(signum, frame, abortObj))
     
     ### Get time stamp of current run; used e.g. in the name of backup files ###
     time_stamp_of_run = datetime.now().strftime('%Y%m%d-%H%M%S')
@@ -460,13 +475,15 @@ def __main__():
                 getLogger().info(f"User selected operation {batch_operation_type}: Deleting analysis '{gl_file_manager.get_analysis_name()}' from GL: {gl_file_manager.get_gl_directory_path()}")
                 shutil.rmtree(gl_file_manager.get_gl_analysis_path())
             moma_return_code = 0 # set dummy value, because we did not run moma
+        if abortObj.abortSignaled:
+                getLogger().info("USER REQUESTED ABORT.")
+                break
         if moma_return_code != 0:
             getLogger().warn(f"Moma finished with a non-zero return-code (value: {moma_return_code}). This can happen, if it crashed or because you pressed 'ctrl+x' during its execution.")
             reply = query_yes_no(f"Do you want to continue? ", "no")
             if not reply:
-                getLogger().info("Aborting deletion run, because user replied 'no'. ")
-                sys.exit(-1)
-            getLogger().info("ABORTING BATCH RUN.")
+                getLogger().info("USER REQUESTED ABORT.")
+                break
     getLogger().info("FINISHED BATCH RUN.")
 
 def parse_gls_to_process(yaml_config_file, gl_user_selection):
