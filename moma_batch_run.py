@@ -7,6 +7,7 @@ from datetime import datetime
 import os
 from distutils.dir_util import copy_tree
 import shutil
+import signal
 import sys
 import argparse
 from glob import glob
@@ -329,7 +330,17 @@ def run_moma_and_log(logger, tiff_path, current_args_dict):
     # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")  # this would output also MoMA output to the log file:
     logger.info("FINISHED MOMA.")
 
+def handler(signum, frame):
+    getLogger().info("Ctrl-c was pressed. Do you really want to abort execution? [y/N]")
+    user_response = input()
+    if user_response is 'y':
+        getLogger().info("User selected 'y'. Stopping execution.")
+        sys.exit(1)
+    getLogger().info("User selected 'n'. Continuing execution.")
+
 def __main__():
+    signal.signal(signal.SIGINT, handler)
+    
     ### Get time stamp of current run; used e.g. in the name of backup files ###
     time_stamp_of_run = datetime.now().strftime('%Y%m%d-%H%M%S')
 
