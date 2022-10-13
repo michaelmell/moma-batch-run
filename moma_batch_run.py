@@ -332,33 +332,34 @@ class MomaRunner(object):
         pass
 
     def abort(self):
-        if self.is_running:
-            self._moma_process.terminate()
+        # if self.is_running:
+        if True:
+            # self._moma_process.terminate()
+            getLogger().info("STOPPING MOMA.")    
+            self._moma_process.send_signal(signal.SIGINT)
+            # self._moma_process.kill()
 
     def run(self, logger, tiff_path, current_args_dict):
         args_string = build_arg_string(current_args_dict)
         args_string += f' -i {tiff_path}'
         moma_command = f'moma {args_string}'
-        logger.info("MOMA RUNNER self.is_running 1: " + str(self.is_running))
         logger.info("RUN MOMA: " + moma_command)
         # moma_command = f'moma {args_string} -i {tiff_path}'
         # os.system(moma_command)
 
-        def preexec(): # Don't forward signals.
-            os.setpgrp()
+        # def preexec(): # Don't forward signals.
+        #     os.setpgrp()
 
         self._moma_process = subprocess.Popen(['moma'] + args_string.split(),
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
                                         universal_newlines=True,
-                                        preexec_fn=preexec,
+                                        # preexec_fn=preexec,
                                         # creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
                                         )
         for line in self._moma_process.stdout:
             sys.stdout.write(line)
-            logger.info("MOMA RUNNER self.is_running 2: " + str(self.is_running))
         self._moma_process.wait()
-        logger.info("MOMA RUNNER self.is_running 3: " + str(self.is_running))
         # stream = moma_process.communicate()[0]
         self._return_code = self._moma_process.returncode
         # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")  # this would output also MoMA output to the log file:
@@ -380,13 +381,15 @@ class MomaRunner(object):
 
 def handler(signum, frame, abortObject, moma_runner: MomaRunner):
     getLogger().info("Ctrl-c was pressed. Do you really want to abort execution? [y/N]")
-    user_response = input()
-    if user_response is 'y':
-        getLogger().info("User selected 'y'. Stopping execution.")
-        moma_runner.abort()
+    # user_response = input()
+    # if user_response is 'y':
+    if True:
+        getLogger().info("User selected 'y'.")
+        getLogger().info("USER REQUESTED ABORT. STOPPING EXECUTION.")
         abortObject.abortSignaled = True
+        moma_runner.abort()
         # sys.exit(1)
-    getLogger().info("User selected 'n'. Continuing execution.")
+    # getLogger().info("User selected 'n'. Continuing execution.")
 
 class AbortObject(object):
     abortSignaled = False
@@ -396,7 +399,7 @@ def __main__():
 
     abortObj = AbortObject()
     abortObj.abortSignaled = False
-    signal.signal(signal.SIGINT, lambda signum, frame: handler(signum, frame, abortObj))
+    signal.signal(signal.SIGINT, lambda signum, frame: handler(signum, frame, abortObj, moma_runner))
     
     ### Get time stamp of current run; used e.g. in the name of backup files ###
     time_stamp_of_run = datetime.now().strftime('%Y%m%d-%H%M%S')
@@ -454,7 +457,7 @@ def __main__():
         getLogger().info("ERROR: Option '-delete-analysis' must be combined with option '-fforce'.")
         sys.exit(-1)
 
-    getLogger().info("START BATCH RUN.")
+    getLogger().info("BATCH RUN STARTED.")
     batch_operation_type = 'DELETE' if cmd_args.delete else 'TRACK' if cmd_args.track else 'CURATE' if cmd_args.curate else 'EXPORT' if cmd_args.export else 'UNDEFINED ERROR'
     getLogger().info(f"Run type: {batch_operation_type}")
     batch_command_string = ' '.join(sys.argv)
@@ -506,7 +509,6 @@ def __main__():
                 getLogger().info(f"User selected operation {batch_operation_type}: Deleting analysis '{gl_file_manager.get_analysis_name()}' from GL: {gl_file_manager.get_gl_directory_path()}")
                 shutil.rmtree(gl_file_manager.get_gl_analysis_path())
         if abortObj.abortSignaled:
-                getLogger().info("USER REQUESTED ABORT.")
                 break
         if moma_runner.return_code != 0:
             getLogger().warn(f"Moma finished with a non-zero return-code (value: {moma_runner.return_code}). This can happen, if it crashed or because you pressed 'ctrl+x' during its execution.")
@@ -514,7 +516,10 @@ def __main__():
             if not reply:
                 getLogger().info("USER REQUESTED ABORT.")
                 break
-    getLogger().info("FINISHED BATCH RUN.")
+    if abortObj.abortSignaled:
+        getLogger().info("BATCH RUN ABORTED.")
+    else:
+        getLogger().info("BATCH RUN FINISHED.")
 
 def parse_gls_to_process(yaml_config_file, gl_user_selection):
     '''
