@@ -332,12 +332,9 @@ class MomaRunner(object):
         pass
 
     def abort(self):
-        # if self.is_running:
-        if True:
-            # self._moma_process.terminate()
+        if self.is_running:
             getLogger().info("STOPPING MOMA.")    
             self._moma_process.send_signal(signal.SIGINT)
-            # self._moma_process.kill()
 
     def run(self, logger, tiff_path, current_args_dict):
         args_string = build_arg_string(current_args_dict)
@@ -347,16 +344,10 @@ class MomaRunner(object):
         # moma_command = f'moma {args_string} -i {tiff_path}'
         # os.system(moma_command)
 
-        # def preexec(): # Don't forward signals.
-        #     os.setpgrp()
-
         self._moma_process = subprocess.Popen(['moma'] + args_string.split(),
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
-                                        universal_newlines=True,
-                                        # preexec_fn=preexec,
-                                        # creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
-                                        )
+                                        universal_newlines=True)
         for line in self._moma_process.stdout:
             sys.stdout.write(line)
         self._moma_process.wait()
@@ -381,15 +372,13 @@ class MomaRunner(object):
 
 def handler(signum, frame, abortObject, moma_runner: MomaRunner):
     getLogger().info("Ctrl-c was pressed. Do you really want to abort execution? [y/N]")
-    # user_response = input()
-    # if user_response is 'y':
-    if True:
-        getLogger().info("User selected 'y'.")
+    user_response = input()
+    if user_response is 'y':
+        getLogger().info("User selected 'y'. Stopping execution.")
         getLogger().info("USER REQUESTED ABORT. STOPPING EXECUTION.")
         abortObject.abortSignaled = True
         moma_runner.abort()
-        # sys.exit(1)
-    # getLogger().info("User selected 'n'. Continuing execution.")
+    getLogger().info("User selected 'n'. Continuing execution.")
 
 class AbortObject(object):
     abortSignaled = False
