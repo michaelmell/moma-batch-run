@@ -339,6 +339,7 @@ class MomaRunner(object):
         args_string = build_arg_string(current_args_dict)
         args_string += f' -i {tiff_path}'
         moma_command = f'moma {args_string}'
+        logger.info("MOMA RUNNER self.is_running 1: " + str(self.is_running))
         logger.info("RUN MOMA: " + moma_command)
         # moma_command = f'moma {args_string} -i {tiff_path}'
         # os.system(moma_command)
@@ -346,18 +347,20 @@ class MomaRunner(object):
         def preexec(): # Don't forward signals.
             os.setpgrp()
 
-        moma_process = subprocess.Popen(['moma'] + args_string.split(),
+        self._moma_process = subprocess.Popen(['moma'] + args_string.split(),
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
                                         universal_newlines=True,
                                         preexec_fn=preexec,
                                         # creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
                                         )
-        for line in moma_process.stdout:
+        for line in self._moma_process.stdout:
             sys.stdout.write(line)
-        moma_process.wait()
+            logger.info("MOMA RUNNER self.is_running 2: " + str(self.is_running))
+        self._moma_process.wait()
+        logger.info("MOMA RUNNER self.is_running 3: " + str(self.is_running))
         # stream = moma_process.communicate()[0]
-        self._return_code = moma_process.returncode
+        self._return_code = self._moma_process.returncode
         # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")  # this would output also MoMA output to the log file:
         logger.info("FINISHED MOMA.")
 
@@ -505,8 +508,8 @@ def __main__():
         if abortObj.abortSignaled:
                 getLogger().info("USER REQUESTED ABORT.")
                 break
-        if moma_runner.moma_return_code != 0:
-            getLogger().warn(f"Moma finished with a non-zero return-code (value: {moma_runner.moma_return_code}). This can happen, if it crashed or because you pressed 'ctrl+x' during its execution.")
+        if moma_runner.return_code != 0:
+            getLogger().warn(f"Moma finished with a non-zero return-code (value: {moma_runner.return_code}). This can happen, if it crashed or because you pressed 'ctrl+x' during its execution.")
             reply = query_yes_no(f"Do you want to continue? ", "no")
             if not reply:
                 getLogger().info("USER REQUESTED ABORT.")
