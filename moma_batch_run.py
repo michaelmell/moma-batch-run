@@ -368,13 +368,15 @@ class MomaRunner(object):
 
 def handler(signum, frame, abortObject, moma_runner: MomaRunner):
     getLogger().info("Ctrl-c was pressed. Do you really want to abort execution? [y/N]")
+    
     user_response = input()
     if user_response is 'y':
         getLogger().info("User selected 'y'. Stopping execution.")
         getLogger().info("USER REQUESTED ABORT. STOPPING EXECUTION.")
         abortObject.abortSignaled = True
         moma_runner.abort()
-    getLogger().info("User selected 'n'. Continuing execution.")
+    else:
+        getLogger().info("User selected 'n'. Continuing execution.")
 
 class AbortObject(object):
     abortSignaled = False
@@ -494,12 +496,6 @@ def __main__():
                 getLogger().info(f"User selected operation {batch_operation_type}: Deleting analysis '{gl_file_manager.get_analysis_name()}' from GL: {gl_file_manager.get_gl_directory_path()}")
                 shutil.rmtree(gl_file_manager.get_gl_analysis_path())
         if abortObj.abortSignaled:
-                break
-        if moma_runner.return_code != 0:
-            getLogger().warn(f"Moma finished with a non-zero return-code (value: {moma_runner.return_code}). This can happen, if it crashed or because you pressed 'ctrl+x' during its execution.")
-            reply = query_yes_no(f"Do you want to continue? ", "no")
-            if not reply:
-                getLogger().info("USER REQUESTED ABORT.")
                 break
     if abortObj.abortSignaled:
         getLogger().info("BATCH RUN ABORTED.")
