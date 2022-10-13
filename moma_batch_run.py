@@ -341,8 +341,6 @@ class MomaRunner(object):
         args_string += f' -i {tiff_path}'
         moma_command = f'moma {args_string}'
         logger.info("RUN MOMA: " + moma_command)
-        # moma_command = f'moma {args_string} -i {tiff_path}'
-        # os.system(moma_command)
 
         self._moma_process = subprocess.Popen(['moma'] + args_string.split(),
                                         stdout=subprocess.PIPE,
@@ -351,9 +349,7 @@ class MomaRunner(object):
         for line in self._moma_process.stdout:
             sys.stdout.write(line)
         self._moma_process.wait()
-        # stream = moma_process.communicate()[0]
         self._return_code = self._moma_process.returncode
-        # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")  # this would output also MoMA output to the log file:
         logger.info("FINISHED MOMA.")
 
     @property
