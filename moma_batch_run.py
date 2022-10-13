@@ -342,10 +342,12 @@ class MomaRunner(object):
         moma_command = f'moma {args_string}'
         logger.info("RUN MOMA: " + moma_command)
 
+        old_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
         self._moma_process = subprocess.Popen(['moma'] + args_string.split(),
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
                                         universal_newlines=True)
+        signal.signal(signal.SIGINT, old_handler)
         for line in self._moma_process.stdout:
             sys.stdout.write(line)
         self._moma_process.wait()
