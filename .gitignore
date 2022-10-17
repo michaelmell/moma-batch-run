@@ -7,3 +7,4 @@ tracking_config_examples/
 test_ctrl_c.py
 *.log
 test_analysis_run.sh
+mm.properties
