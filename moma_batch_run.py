@@ -539,6 +539,9 @@ def parse_cmd_arguments():
     # parser.add_argument('--version', action='version', version='<the version>')
     group = parser.add_argument_group('required (mutually exclusive) arguments')
     mxgroup_metavar_name="yaml_config_file"
+    
+    args_with_yaml_config_file_path = ['delete', 'track', 'curate', 'export']
+
     mxgroup = group.add_mutually_exclusive_group(required=True)
     mxgroup.add_argument('-help', action='help')
     mxgroup.add_argument('-version', action='version', version=f'%(prog)s {batch_script_version}')
@@ -563,6 +566,11 @@ def parse_cmd_arguments():
     parser.add_argument("-ff", "--fforce", action='store_true',
                     help="force operation when deleting data; e.g. with option '-delete-analysis'")
     cmd_args = parser.parse_args()
+
+    args_dict = vars(cmd_args)
+    for arg_name in args_with_yaml_config_file_path:
+        if args_dict[arg_name]:
+            cmd_args.yaml_config_file = Path(args_dict[arg_name]) # get YAML config file path from the arguments it as value
     return cmd_args
 
 if __name__ == "__main__":
