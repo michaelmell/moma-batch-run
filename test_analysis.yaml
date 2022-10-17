@@ -10,17 +10,17 @@ pos:
       12: {
           # moma_arg: {analysis: 'test_analysis'}
         },
-      23:
-      # {moma_arg:
-      #   {tmin: 20,
-      #     tmax: 80}
-      #   }
+      # 23:
+      # # {moma_arg:
+      # #   {tmin: 20,
+      # #     tmax: 80}
+      # #   }
     }
-    moma_arg:
-      p: '/home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties'
-      tmax: 10
-  15:
-    gl: {4,
-         18}
-    # moma_arg: {tmax: 100}
-  21: {}
+  #   moma_arg:
+  #     p: '/home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties'
+  #     tmax: 10
+  # 15:
+  #   gl: {4,
+  #        18}
+  #   # moma_arg: {tmax: 100}
+  # 21: {}

@@ -18,6 +18,12 @@ import yaml
 from yaml.loader import SafeLoader
 
 
+batch_script_version = "0.1.0"
+program_name='moma_batch_run'
+
+def print_batch_version_to_log():
+    print(f'Batch script version: {batch_script_version}')
+
 def query_yes_no(question, default="yes", trailing_string=""):
     "MM-20220809: This was taken from: https://stackoverflow.com/a/3041990"
 
@@ -384,6 +390,12 @@ class AbortObject(object):
     abortSignaled = False
 
 def __main__():
+    cmd_args = parse_cmd_arguments()
+
+    if cmd_args.version:
+        print_batch_version_to_log()  # print version to the console, if user requests it
+        sys.exit(0)
+
     moma_runner = MomaRunner()
 
     abortObj = AbortObject()
@@ -392,8 +404,6 @@ def __main__():
     
     ### Get time stamp of current run; used e.g. in the name of backup files ###
     time_stamp_of_run = datetime.now().strftime('%Y%m%d-%H%M%S')
-
-    cmd_args = parse_cmd_arguments()
 
     yaml_config_file_path = Path(cmd_args.yaml_config_file)
     
@@ -447,6 +457,7 @@ def __main__():
         sys.exit(-1)
 
     getLogger().info("BATCH RUN STARTED.")
+    print_batch_version_to_log()  # print version to the log-file for later reference
     batch_operation_type = 'DELETE' if cmd_args.delete else 'TRACK' if cmd_args.track else 'CURATE' if cmd_args.curate else 'EXPORT' if cmd_args.export else 'UNDEFINED ERROR'
     getLogger().info(f"Run type: {batch_operation_type}")
     batch_command_string = ' '.join(sys.argv)
@@ -527,23 +538,30 @@ def parse_gls_to_process(yaml_config_file, gl_user_selection):
 
 def parse_cmd_arguments():
     ### parse command line arguments ###
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog=program_name)
+    # parser.add_argument("--version")
+    # parser.add_argument('--version', action='version', version='<the version>')
     group = parser.add_argument_group('required (mutually exclusive) arguments')
+    mxgroup_metavar_name="yaml_config_file"
     mxgroup = group.add_mutually_exclusive_group(required=True)
-    mxgroup.add_argument("-delete-analysis", "--delete-analysis", action='store_true', dest='delete',
-                    help="delete batch-tracking of GLs")
-    mxgroup.add_argument("-track", "--track", action='store_true',
+    mxgroup.add_argument('-help', action='help')
+    mxgroup.add_argument('-version', action='version', version=f'%(prog)s {batch_script_version}')
+    mxgroup.add_argument("-delete_gl_analysis", dest='delete', metavar=mxgroup_metavar_name,
+                    help="delete analysis files of specified GLs; WARNING: this will remove ALL analysis-files for the GLs")
+    mxgroup.add_argument("-track", metavar=mxgroup_metavar_name,
                     help="run batch-tracking of GLs")
-    mxgroup.add_argument("-curate", "--curate", action='store_true',
+    mxgroup.add_argument("-curate", metavar=mxgroup_metavar_name,
                     help="run interactive curation of GLs")
-    mxgroup.add_argument("-export", "--export", action='store_true',
+    mxgroup.add_argument("-export", metavar=mxgroup_metavar_name,
                     help="run batch-export of tracking results")
+    # mxgroup.add_argument("-version", "--version", action='store_true',
+    #                 help="print version of this batch script")
     parser.add_argument("-l", "--log", type=str,
                     help="path to the log-file for this batch-run; derived from 'yaml_config_file' and stored next to it, if not specified")
     parser.add_argument("-select", "--select", type=str,
                     help="run on selection of GLs specified in Python dictionary-format; GLs must be defined in 'yaml_config_file'; example: \"{0:{1,2}, 3:{4,5}}\", where 0, 3 are position indices and 1, 2, 4, 5 are GL indices")
-    parser.add_argument("yaml_config_file", type=str,
-                    help="path to YAML file with dataset configuration")
+    # parser.add_argument("yaml_config_file", type=str,
+    #                 help="path to YAML file with dataset configuration")
     parser.add_argument("-f", "--force", action='store_true',
                     help="force the operation")
     parser.add_argument("-ff", "--fforce", action='store_true',
