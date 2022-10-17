@@ -7,10 +7,12 @@ from datetime import datetime
 import os
 from distutils.dir_util import copy_tree
 import shutil
+import signal
 import sys
 import argparse
 from glob import glob
 import logging
+import subprocess
 
 import yaml
 from yaml.loader import SafeLoader
@@ -309,9 +311,9 @@ def initialize_logger(log_file):
     # and
     # https://stackoverflow.com/a/38394903
     logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s',
-                    filename=log_file,
-                    filemode='a')
+                        format='%(asctime)s - %(levelname)s - %(message)s',
+                        filename=log_file,
+                        filemode='a')
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -321,15 +323,73 @@ def initialize_logger(log_file):
     sys.stdout = StreamToLogger(logger, logging.INFO)
     sys.stderr = StreamToLogger(logger, logging.ERROR)
 
-def run_moma_and_log(logger, tiff_path, current_args_dict):
-    args_string = build_arg_string(current_args_dict)
-    moma_command = f'moma {args_string} -i {tiff_path}'
-    logger.info("RUN MOMA: " + moma_command)
-    os.system(moma_command)
-    # os.system(f"moma --headless -p {mmproperties_path} -i {tiff} -o {output_folder}  2>&1 | tee {moma_log_file}")  # this would output also MoMA output to the log file:
-    logger.info("FINISHED MOMA.")
+
+class MomaRunner(object):
+    _moma_process: subprocess.Popen = None
+    _return_code: int = 0
+    
+    def __init__(self):
+        pass
+
+    def abort(self):
+        if self.is_running:
+            getLogger().info("STOPPING MOMA.")    
+            self._moma_process.send_signal(signal.SIGINT)
+
+    def run(self, logger, tiff_path, current_args_dict):
+        args_string = build_arg_string(current_args_dict)
+        args_string += f' -i {tiff_path}'
+        moma_command = f'moma {args_string}'
+        logger.info("RUN MOMA: " + moma_command)
+
+        old_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
+        self._moma_process = subprocess.Popen(['moma'] + args_string.split(),
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.STDOUT,
+                                        universal_newlines=True)
+        signal.signal(signal.SIGINT, old_handler)
+        for line in self._moma_process.stdout:
+            sys.stdout.write(line)
+        self._moma_process.wait()
+        self._return_code = self._moma_process.returncode
+        logger.info("FINISHED MOMA.")
+
+    @property
+    def is_running(self) -> bool:
+        if not self._moma_process:
+            return False
+        poll = self._moma_process.poll()
+        if poll is None:
+            return True
+        else:
+            return False
+
+    @property
+    def return_code(self):
+        return self._return_code
+
+def handler(signum, frame, abortObject, moma_runner: MomaRunner):
+    getLogger().info("Ctrl-c was pressed. Do you really want to abort execution? [y/N]")
+    
+    user_response = input()
+    if user_response is 'y':
+        getLogger().info("User selected 'y'. Stopping execution.")
+        getLogger().info("USER REQUESTED ABORT. STOPPING EXECUTION.")
+        abortObject.abortSignaled = True
+        moma_runner.abort()
+    else:
+        getLogger().info("User selected 'n'. Continuing execution.")
+
+class AbortObject(object):
+    abortSignaled = False
 
 def __main__():
+    moma_runner = MomaRunner()
+
+    abortObj = AbortObject()
+    abortObj.abortSignaled = False
+    signal.signal(signal.SIGINT, lambda signum, frame: handler(signum, frame, abortObj, moma_runner))
+    
     ### Get time stamp of current run; used e.g. in the name of backup files ###
     time_stamp_of_run = datetime.now().strftime('%Y%m%d-%H%M%S')
 
@@ -386,7 +446,7 @@ def __main__():
         getLogger().info("ERROR: Option '-delete-analysis' must be combined with option '-fforce'.")
         sys.exit(-1)
 
-    getLogger().info("START BATCH RUN.")
+    getLogger().info("BATCH RUN STARTED.")
     batch_operation_type = 'DELETE' if cmd_args.delete else 'TRACK' if cmd_args.track else 'CURATE' if cmd_args.curate else 'EXPORT' if cmd_args.export else 'UNDEFINED ERROR'
     getLogger().info(f"Run type: {batch_operation_type}")
     batch_command_string = ' '.join(sys.argv)
@@ -412,7 +472,7 @@ def __main__():
                 gl_file_manager.move_track_data_to_backup(backup_postfix)
                 gl_file_manager.move_export_data_to_backup(backup_postfix)
                 current_args_dict.update({'headless':None, 'trackonly':None})
-                run_moma_and_log(getLogger(), tiff_path, current_args_dict)
+                moma_runner.run(getLogger(), tiff_path, current_args_dict)
                 gl_file_manager.set_gl_is_tracked()
             else:
                 getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already tracked for analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_track_data_path()}")
@@ -422,7 +482,7 @@ def __main__():
                     gl_file_manager.copy_track_data_to_backup(backup_postfix)
                     gl_file_manager.move_export_data_to_backup(backup_postfix)
                 current_args_dict = {'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
-                run_moma_and_log(getLogger(), tiff_path, current_args_dict)
+                moma_runner.run(getLogger(), tiff_path, current_args_dict)
                 gl_file_manager.set_gl_is_curated()
             else:
                 getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already curated for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
@@ -430,15 +490,19 @@ def __main__():
             if not gl_file_manager.get_gl_is_exported() or cmd_args.force:
                 gl_file_manager.move_export_data_to_backup(backup_postfix)
                 current_args_dict = {'headless':None, 'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
-                run_moma_and_log(getLogger(), tiff_path, current_args_dict)
+                moma_runner.run(getLogger(), tiff_path, current_args_dict)
             else:
                 getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already exported for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
         elif cmd_args.delete and cmd_args.fforce:
             if gl_file_manager.get_gl_analysis_path().exists():
                 getLogger().info(f"User selected operation {batch_operation_type}: Deleting analysis '{gl_file_manager.get_analysis_name()}' from GL: {gl_file_manager.get_gl_directory_path()}")
                 shutil.rmtree(gl_file_manager.get_gl_analysis_path())
-
-    getLogger().info("FINISHED BATCH RUN.")
+        if abortObj.abortSignaled:
+                break
+    if abortObj.abortSignaled:
+        getLogger().info("BATCH RUN ABORTED.")
+    else:
+        getLogger().info("BATCH RUN FINISHED.")
 
 def parse_gls_to_process(yaml_config_file, gl_user_selection):
     '''
