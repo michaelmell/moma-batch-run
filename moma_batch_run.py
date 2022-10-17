@@ -535,8 +535,6 @@ def parse_gls_to_process(yaml_config_file, gl_user_selection):
 def parse_cmd_arguments():
     ### parse command line arguments ###
     parser = argparse.ArgumentParser(prog=program_name)
-    # parser.add_argument("--version")
-    # parser.add_argument('--version', action='version', version='<the version>')
     group = parser.add_argument_group('required (mutually exclusive) arguments')
     mxgroup_metavar_name="yaml_config_file"
     
@@ -553,14 +551,10 @@ def parse_cmd_arguments():
                     help="run interactive curation of GLs")
     mxgroup.add_argument("-export", metavar=mxgroup_metavar_name,
                     help="run batch-export of tracking results")
-    # mxgroup.add_argument("-version", "--version", action='store_true',
-    #                 help="print version of this batch script")
     parser.add_argument("-l", "--log", type=str,
                     help="path to the log-file for this batch-run; derived from 'yaml_config_file' and stored next to it, if not specified")
     parser.add_argument("-select", "--select", type=str,
                     help="run on selection of GLs specified in Python dictionary-format; GLs must be defined in 'yaml_config_file'; example: \"{0:{1,2}, 3:{4,5}}\", where 0, 3 are position indices and 1, 2, 4, 5 are GL indices")
-    # parser.add_argument("yaml_config_file", type=str,
-    #                 help="path to YAML file with dataset configuration")
     parser.add_argument("-f", "--force", action='store_true',
                     help="force the operation")
     parser.add_argument("-ff", "--fforce", action='store_true',
