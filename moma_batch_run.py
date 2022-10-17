@@ -310,8 +310,8 @@ def keep_user_selected_gls(config: dict, selection: dict) -> dict:
         cfg['pos'][pos_ind]['gl'] = {gl_ind:cfg['pos'][pos_ind]['gl'][gl_ind] for gl_ind in selected_gl_ind}
     return cfg
 
-# console_stdout = sys.stdout
-# console_stderr = sys.stderr
+console_stdout = sys.stdout
+console_stderr = sys.stderr
 
 def initialize_logger(log_file):
     ### Initialize and configure logging ###
@@ -353,6 +353,9 @@ class MomaRunner(object):
         args_string += f' -i {tiff_path}'
         moma_command = f'moma {args_string}'
         logger.info("RUN MOMA: " + moma_command)
+        
+        log_path = Path.joinpath(Path(tiff_path).parent, current_args_dict['analysis'], "track_data__" + current_args_dict['analysis'], "moma.log")
+        logger.info("LOG MOMA: " + str(log_path))
 
         old_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
         self._moma_process = subprocess.Popen(['moma'] + args_string.split(),
@@ -361,8 +364,8 @@ class MomaRunner(object):
                                         universal_newlines=True)
         signal.signal(signal.SIGINT, old_handler)
         for line in self._moma_process.stdout:
-            sys.stdout.write(line)
-            # console_stdout.write(line)
+            # sys.stdout.write(line)
+            console_stdout.write(line)
         self._moma_process.wait()
         self._return_code = self._moma_process.returncode
         logger.info("FINISHED MOMA.")
