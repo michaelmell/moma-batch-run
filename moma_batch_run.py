@@ -392,10 +392,6 @@ class AbortObject(object):
 def __main__():
     cmd_args = parse_cmd_arguments()
 
-    if cmd_args.version:
-        print_batch_version_to_log()  # print version to the console, if user requests it
-        sys.exit(0)
-
     moma_runner = MomaRunner()
 
     abortObj = AbortObject()
