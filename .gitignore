@@ -2,3 +2,8 @@
 tracking_config_test_1.yaml
 tracking_config_test_2.yaml
 tracking_config_test_3.yaml
+.idea/
+tracking_config_examples/
+test_ctrl_c.py
+*.log
+test_analysis_run.sh
