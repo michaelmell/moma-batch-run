@@ -101,7 +101,7 @@
             "program": "moma_batch_run.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args" : ["-delete-analysis","test_analysis.yaml"]
+            "args" : ["-delete_gl_analysis","test_analysis.yaml"]
         },
         {
             "name": "force-delete",
@@ -110,7 +110,7 @@
             "program": "moma_batch_run.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args" : ["-ff","-delete-analysis","test_analysis.yaml"]
+            "args" : ["-ff","-delete_gl_analysis","test_analysis.yaml"]
         },
     ]
 }
