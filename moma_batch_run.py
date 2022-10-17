@@ -310,6 +310,9 @@ def keep_user_selected_gls(config: dict, selection: dict) -> dict:
         cfg['pos'][pos_ind]['gl'] = {gl_ind:cfg['pos'][pos_ind]['gl'][gl_ind] for gl_ind in selected_gl_ind}
     return cfg
 
+# console_stdout = sys.stdout
+# console_stderr = sys.stderr
+
 def initialize_logger(log_file):
     ### Initialize and configure logging ###
     # instructions how to setup the logger to write to terminal can be found here:
@@ -339,8 +342,11 @@ class MomaRunner(object):
 
     def abort(self):
         if self.is_running:
-            getLogger().info("STOPPING MOMA.")    
-            self._moma_process.send_signal(signal.SIGINT)
+            getLogger().info("STOPPING MOMA.")
+            self._moma_process.terminate()
+            self._moma_process.kill()
+            # self._moma_process.send_signal(signal.SIGINT)
+            # self._moma_process.send_signal(signal.SIGKILL)
 
     def run(self, logger, tiff_path, current_args_dict):
         args_string = build_arg_string(current_args_dict)
@@ -356,6 +362,7 @@ class MomaRunner(object):
         signal.signal(signal.SIGINT, old_handler)
         for line in self._moma_process.stdout:
             sys.stdout.write(line)
+            # console_stdout.write(line)
         self._moma_process.wait()
         self._return_code = self._moma_process.returncode
         logger.info("FINISHED MOMA.")
