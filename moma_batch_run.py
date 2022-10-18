@@ -399,6 +399,62 @@ def handler(signum, frame, abortObject, moma_runner: MomaRunner):
 class AbortObject(object):
     abortSignaled = False
 
+def parse_gls_to_process(yaml_config_file, gl_user_selection):
+    '''
+    Parses the GLs that will be processed.
+    '''
+    with open(yaml_config_file) as f:
+        config = yaml.load(f, Loader=SafeLoader)
+
+    if gl_user_selection:
+        config = keep_user_selected_gls(config, gl_user_selection)
+
+    for_each_gl_in_config(config, initialize_gl_entry_to_dict)
+    for_each_gl_in_config(config, validate_moma_args)
+    for_each_gl_in_config(config, add_moma_args)
+    for_each_gl_in_config(config, add_gl_path)
+    for_each_gl_in_config(config, add_tiff_path)
+    for_each_gl_in_config(config, add_pos_and_gl_ind)
+    gl_dicts = []
+    for_each_gl_in_config(config, lambda gl_ind, gl_entry, pos_ind, pos_entry, config: append_to_gl_dict_list(gl_entry, gl_dicts))
+
+    return gl_dicts
+
+def parse_cmd_arguments():
+    ### parse command line arguments ###
+    parser = argparse.ArgumentParser(prog=program_name)
+    group = parser.add_argument_group('required (mutually exclusive) arguments')
+    mxgroup_metavar_name="yaml_config_file"
+    
+    args_with_yaml_config_file_path = ['delete', 'track', 'curate', 'export']
+
+    mxgroup = group.add_mutually_exclusive_group(required=True)
+    mxgroup.add_argument('-help', action='help')
+    mxgroup.add_argument('-version', action='version', version=f'%(prog)s {batch_script_version}')
+    mxgroup.add_argument("-delete_gl_analysis", dest='delete', metavar=mxgroup_metavar_name,
+                    help="delete analysis files of specified GLs; WARNING: this will remove ALL analysis-files for the GLs")
+    mxgroup.add_argument("-track", metavar=mxgroup_metavar_name,
+                    help="run batch-tracking of GLs")
+    mxgroup.add_argument("-curate", metavar=mxgroup_metavar_name,
+                    help="run interactive curation of GLs")
+    mxgroup.add_argument("-export", metavar=mxgroup_metavar_name,
+                    help="run batch-export of tracking results")
+    parser.add_argument("-l", "--log", type=str,
+                    help="path to the log-file for this batch-run; derived from 'yaml_config_file' and stored next to it, if not specified")
+    parser.add_argument("-select", "--select", type=str,
+                    help="run on selection of GLs specified in Python dictionary-format; GLs must be defined in 'yaml_config_file'; example: \"{0:{1,2}, 3:{4,5}}\", where 0, 3 are position indices and 1, 2, 4, 5 are GL indices")
+    parser.add_argument("-f", "--force", action='store_true',
+                    help="force the operation")
+    parser.add_argument("-ff", "--fforce", action='store_true',
+                    help="force operation when deleting data; e.g. with option '-delete-analysis'")
+    cmd_args = parser.parse_args()
+
+    args_dict = vars(cmd_args)
+    for arg_name in args_with_yaml_config_file_path:
+        if args_dict[arg_name]:
+            cmd_args.yaml_config_file = Path(args_dict[arg_name]) # get YAML config file path from the arguments it as value
+    return cmd_args
+
 def __main__():
     cmd_args = parse_cmd_arguments()
 
@@ -520,62 +576,6 @@ def __main__():
         getLogger().info("BATCH RUN ABORTED.")
     else:
         getLogger().info("BATCH RUN FINISHED.")
-
-def parse_gls_to_process(yaml_config_file, gl_user_selection):
-    '''
-    Parses the GLs that will be processed.
-    '''
-    with open(yaml_config_file) as f:
-        config = yaml.load(f, Loader=SafeLoader)
-
-    if gl_user_selection:
-        config = keep_user_selected_gls(config, gl_user_selection)
-
-    for_each_gl_in_config(config, initialize_gl_entry_to_dict)
-    for_each_gl_in_config(config, validate_moma_args)
-    for_each_gl_in_config(config, add_moma_args)
-    for_each_gl_in_config(config, add_gl_path)
-    for_each_gl_in_config(config, add_tiff_path)
-    for_each_gl_in_config(config, add_pos_and_gl_ind)
-    gl_dicts = []
-    for_each_gl_in_config(config, lambda gl_ind, gl_entry, pos_ind, pos_entry, config: append_to_gl_dict_list(gl_entry, gl_dicts))
-
-    return gl_dicts
-
-def parse_cmd_arguments():
-    ### parse command line arguments ###
-    parser = argparse.ArgumentParser(prog=program_name)
-    group = parser.add_argument_group('required (mutually exclusive) arguments')
-    mxgroup_metavar_name="yaml_config_file"
-    
-    args_with_yaml_config_file_path = ['delete', 'track', 'curate', 'export']
-
-    mxgroup = group.add_mutually_exclusive_group(required=True)
-    mxgroup.add_argument('-help', action='help')
-    mxgroup.add_argument('-version', action='version', version=f'%(prog)s {batch_script_version}')
-    mxgroup.add_argument("-delete_gl_analysis", dest='delete', metavar=mxgroup_metavar_name,
-                    help="delete analysis files of specified GLs; WARNING: this will remove ALL analysis-files for the GLs")
-    mxgroup.add_argument("-track", metavar=mxgroup_metavar_name,
-                    help="run batch-tracking of GLs")
-    mxgroup.add_argument("-curate", metavar=mxgroup_metavar_name,
-                    help="run interactive curation of GLs")
-    mxgroup.add_argument("-export", metavar=mxgroup_metavar_name,
-                    help="run batch-export of tracking results")
-    parser.add_argument("-l", "--log", type=str,
-                    help="path to the log-file for this batch-run; derived from 'yaml_config_file' and stored next to it, if not specified")
-    parser.add_argument("-select", "--select", type=str,
-                    help="run on selection of GLs specified in Python dictionary-format; GLs must be defined in 'yaml_config_file'; example: \"{0:{1,2}, 3:{4,5}}\", where 0, 3 are position indices and 1, 2, 4, 5 are GL indices")
-    parser.add_argument("-f", "--force", action='store_true',
-                    help="force the operation")
-    parser.add_argument("-ff", "--fforce", action='store_true',
-                    help="force operation when deleting data; e.g. with option '-delete-analysis'")
-    cmd_args = parser.parse_args()
-
-    args_dict = vars(cmd_args)
-    for arg_name in args_with_yaml_config_file_path:
-        if args_dict[arg_name]:
-            cmd_args.yaml_config_file = Path(args_dict[arg_name]) # get YAML config file path from the arguments it as value
-    return cmd_args
 
 if __name__ == "__main__":
     __main__()
