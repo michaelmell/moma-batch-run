@@ -3,7 +3,7 @@ preprocessing_path: /media/micha/T7/data_michael_mell/moma_test_data/000_develop
 default_moma_arg:
   p: '/home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties'
   analysis: 'test_analysis'
-  tmax: 200
+  tmax: 10
 pos:
   0:
     gl: {

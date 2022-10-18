@@ -106,10 +106,6 @@ def for_each_gl_in_config(config: dict, fnc):
                 if updated_gl_entry is not None: # only overwrite gl_entry, if method returns an updated version; this is not the case for e.g. validation methods
                     config['pos'][pos_ind]['gl'][gl_ind] = updated_gl_entry
 
-def add_tiff_path(gl_ind, gl_entry, pos_ind, pos_entry, config):
-    gl_entry.update({'tiff_path': glob(gl_entry['gl_path']+'/*[0-9].tif')[0]})
-    return gl_entry
-
 def add_pos_and_gl_ind(gl_ind, gl_entry, pos_ind, pos_entry, config):
     gl_entry['gl_ind'] = gl_ind
     gl_entry['pos_ind'] = pos_ind
@@ -184,6 +180,9 @@ class GlFileManager(object):
             backup_path = Path(str(path_to_backup) + backup_dir_postfix)
             os.rename(path_to_backup, backup_path)
 
+    def get_tiff_path(self) -> Path:
+        gl_path = self.get_gl_directory_path()
+        return glob(str(gl_path)+'/*[0-9].tif')[0]
 
     def get_gl_directory_path(self) -> Path:
         return self.gl_directory_path
@@ -196,8 +195,10 @@ class GlFileManager(object):
         return Path(os.path.join(self.get_gl_analysis_path(), 'export_data__' + self.analysisName))
 
     def get_gl_track_data_path(self) -> Path:
-        path = Path(os.path.join(self.get_gl_analysis_path(), 'track_data__' + self.analysisName))
-        return path
+        return Path(os.path.join(self.get_gl_analysis_path(), 'track_data__' + self.analysisName))
+
+    def get_gl_analysis_log_file_path(self) -> Path:
+        return self.get_gl_track_data_path().joinpath('moma.log')
 
     def get_gl_is_curated(self) -> bool:
         return self.__get_analysis_metadata().curated
@@ -348,13 +349,13 @@ class MomaRunner(object):
             # self._moma_process.send_signal(signal.SIGINT)
             # self._moma_process.send_signal(signal.SIGKILL)
 
-    def run(self, logger, tiff_path, current_args_dict):
+    def run(self, logger, gl_file_manager: GlFileManager, current_args_dict):
         args_string = build_arg_string(current_args_dict)
-        args_string += f' -i {tiff_path}'
+        args_string += f' -i {gl_file_manager.get_tiff_path()}'
         moma_command = f'moma {args_string}'
         logger.info("RUN MOMA: " + moma_command)
         
-        log_path = Path.joinpath(Path(tiff_path).parent, current_args_dict['analysis'], "track_data__" + current_args_dict['analysis'], "moma.log")
+        log_path = gl_file_manager.get_gl_analysis_log_file_path()
         logger.info("LOG MOMA: " + str(log_path))
 
         old_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -413,7 +414,6 @@ def parse_gls_to_process(yaml_config_file, gl_user_selection):
     for_each_gl_in_config(config, validate_moma_args)
     for_each_gl_in_config(config, add_moma_args)
     for_each_gl_in_config(config, add_gl_path)
-    for_each_gl_in_config(config, add_tiff_path)
     for_each_gl_in_config(config, add_pos_and_gl_ind)
     gl_dicts = []
     for_each_gl_in_config(config, lambda gl_ind, gl_entry, pos_ind, pos_entry, config: append_to_gl_dict_list(gl_entry, gl_dicts))
@@ -528,7 +528,6 @@ def __main__():
     getLogger().info(f"Any backups created during this run are appended with postfix: {backup_postfix}")
     
     for gl in gl_dicts:
-        tiff_path = gl['tiff_path']
         gl_directory_path = gl['gl_path']
         args_dict = gl['moma_arg']
         current_args_dict = args_dict.copy()
@@ -545,7 +544,7 @@ def __main__():
                 gl_file_manager.move_track_data_to_backup(backup_postfix)
                 gl_file_manager.move_export_data_to_backup(backup_postfix)
                 current_args_dict.update({'headless':None, 'trackonly':None})
-                moma_runner.run(getLogger(), tiff_path, current_args_dict)
+                moma_runner.run(getLogger(), gl_file_manager, current_args_dict)
                 gl_file_manager.set_gl_is_tracked()
             else:
                 getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already tracked for analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_track_data_path()}")
@@ -555,7 +554,7 @@ def __main__():
                     gl_file_manager.copy_track_data_to_backup(backup_postfix)
                     gl_file_manager.move_export_data_to_backup(backup_postfix)
                 current_args_dict = {'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
-                moma_runner.run(getLogger(), tiff_path, current_args_dict)
+                moma_runner.run(getLogger(), gl_file_manager, current_args_dict)
                 gl_file_manager.set_gl_is_curated()
             else:
                 getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already curated for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
@@ -563,7 +562,7 @@ def __main__():
             if not gl_file_manager.get_gl_is_exported() or cmd_args.force:
                 gl_file_manager.move_export_data_to_backup(backup_postfix)
                 current_args_dict = {'headless':None, 'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
-                moma_runner.run(getLogger(), tiff_path, current_args_dict)
+                moma_runner.run(getLogger(), gl_file_manager, current_args_dict)
             else:
                 getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already exported for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
         elif cmd_args.delete and cmd_args.fforce:
