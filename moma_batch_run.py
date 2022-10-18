@@ -360,12 +360,12 @@ class MomaRunner(object):
         log_path = gl_file_manager.get_gl_analysis_log_file_path()
         logger.info("LOG MOMA: " + str(log_path))
 
-        old_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
+        # old_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
         self._moma_process = subprocess.Popen(['moma'] + args_string.split(),
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
                                         universal_newlines=True)
-        signal.signal(signal.SIGINT, old_handler)
+        # signal.signal(signal.SIGINT, old_handler)
         for line in self._moma_process.stdout:
             # sys.stdout.write(line)
             console_stdout.write(line)
@@ -388,16 +388,18 @@ class MomaRunner(object):
         return self._return_code
 
 def handler(signum, frame, abortObject, moma_runner: MomaRunner):
-    getLogger().info("Ctrl-c was pressed. Do you really want to abort execution? [y/N]")
+    abortObject.abortSignaled = True
+    getLogger().info("Ctrl-c was pressed. Stopping execution.")
+    getLogger().info("USER REQUESTED ABORT. STOPPING EXECUTION.")
     
-    user_response = input()
-    if user_response is 'y':
-        getLogger().info("User selected 'y'. Stopping execution.")
-        getLogger().info("USER REQUESTED ABORT. STOPPING EXECUTION.")
-        abortObject.abortSignaled = True
-        moma_runner.abort()
-    else:
-        getLogger().info("User selected 'n'. Continuing execution.")
+    # user_response = input()
+    # if user_response is 'y':
+    #     getLogger().info("User selected 'y'. Stopping execution.")
+    #     getLogger().info("USER REQUESTED ABORT. STOPPING EXECUTION.")
+    #     abortObject.abortSignaled = True
+    #     moma_runner.abort()
+    # else:
+    #     getLogger().info("User selected 'n'. Continuing execution.")
 
 class AbortObject(object):
     abortSignaled = False
