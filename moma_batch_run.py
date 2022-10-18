@@ -267,7 +267,9 @@ def validate_moma_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
             getLogger().error(f'YAML config error in GL {{{pos_ind}:{gl_ind}}}: ' + str(e))
             sys.exit(-1)
 
-def append_to_gl_dict_list(gl_entry: dict, gl_dicts: list) -> list:
+def append_gl_dicts_with_gl_file_manager(gl_entry: dict, gl_dicts: list) -> list:
+    gl_file_manager = GlFileManager(gl_entry['gl_path'], gl_entry['moma_arg']['analysis'])
+    gl_entry['gl_file_manager'] = gl_file_manager
     gl_dicts.append(gl_entry)
 
 def add_moma_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
@@ -416,8 +418,7 @@ def parse_gls_to_process(yaml_config_file, gl_user_selection):
     for_each_gl_in_config(config, add_gl_path)
     for_each_gl_in_config(config, add_pos_and_gl_ind)
     gl_dicts = []
-    for_each_gl_in_config(config, lambda gl_ind, gl_entry, pos_ind, pos_entry, config: append_to_gl_dict_list(gl_entry, gl_dicts))
-
+    for_each_gl_in_config(config, lambda gl_ind, gl_entry, pos_ind, pos_entry, config: append_gl_dicts_with_gl_file_manager(gl_entry, gl_dicts))
     return gl_dicts
 
 def parse_cmd_arguments():
@@ -529,16 +530,11 @@ def __main__():
     
     for gl in gl_dicts:
         gl_directory_path = gl['gl_path']
+        gl_file_manager = gl['gl_file_manager']
+
         args_dict = gl['moma_arg']
         current_args_dict = args_dict.copy()
         
-        if 'analysis' not in current_args_dict:
-            raise ArgumentError("Value for 'analysis' is not set for running curation.")
-        else:
-            analysisName = current_args_dict['analysis']
-
-        gl_file_manager = GlFileManager(gl_directory_path, analysisName)
-
         if cmd_args.track:
             if not gl_file_manager.get_gl_is_tracked() or cmd_args.force:
                 gl_file_manager.move_track_data_to_backup(backup_postfix)
