@@ -387,7 +387,7 @@ class MomaRunner(object):
     def return_code(self):
         return self._return_code
 
-def handler(signum, frame, abortObject, moma_runner: MomaRunner):
+def killSignalHandler(signum, frame, abortObject, moma_runner: MomaRunner):
     abortObject.abortSignaled = True
     getLogger().info("Ctrl-c was pressed. Stopping execution.")
     getLogger().info("USER REQUESTED ABORT. STOPPING EXECUTION.")
@@ -465,7 +465,7 @@ def __main__():
 
     abortObj = AbortObject()
     abortObj.abortSignaled = False
-    signal.signal(signal.SIGINT, lambda signum, frame: handler(signum, frame, abortObj, moma_runner))
+    signal.signal(signal.SIGINT, lambda signum, frame: killSignalHandler(signum, frame, abortObj, moma_runner))
     
     ### Get time stamp of current run; used e.g. in the name of backup files ###
     time_stamp_of_run = datetime.now().strftime('%Y%m%d-%H%M%S')
