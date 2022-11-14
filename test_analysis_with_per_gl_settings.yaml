@@ -1,0 +1,28 @@
+file_version: 0.1.0
+preprocessing_path: /media/micha/T7/data_michael_mell/moma_test_data/000_development/feature/20220121-fix-loading-of-curated-datasets/Lis/20211026/20211026__lis__process_positions__output__20211101-013152
+default_moma_arg:
+  p: '/home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties'
+  analysis: 'test_analysis'
+  tmax: 10
+pos:
+  0:
+    gl: {
+      # 12: {
+      #     # moma_arg: {analysis: 'test_analysis'}
+      #   },
+      23: {
+          moma_arg: {
+              p: '/home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties',
+              tmin: 20,
+              tmax: 80
+            }
+        }
+    }
+  #   moma_arg:
+  #     p: '/home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties'
+  #     tmax: 10
+  # 15:
+  #   gl: {4,
+  #        18}
+  #   # moma_arg: {tmax: 100}
+  # 21: {}

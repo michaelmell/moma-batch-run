@@ -112,5 +112,14 @@
             "justMyCode": true,
             "args" : ["-ff","-delete_gl_analysis","test_analysis.yaml"]
         },
+        {
+            "name": "track with per GL settings",
+            "type": "python",
+            "request": "launch",
+            "program": "moma_batch_run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args" : ["-f","-track","test_analysis_with_per_gl_settings.yaml"]
+        },
     ]
 }

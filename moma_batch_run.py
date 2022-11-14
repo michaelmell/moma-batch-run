@@ -274,7 +274,7 @@ def append_gl_dicts_with_gl_file_manager(gl_entry: dict, gl_dicts: list) -> list
 
 def add_moma_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
     if 'moma_arg' in gl_entry:
-        return
+        pass # there is nothing to do here, because moma_args was set at the GL level, so we do not need to add it
     elif 'moma_arg' in pos_entry:
         gl_entry['moma_arg'] = pos_entry['moma_arg']
     else:
