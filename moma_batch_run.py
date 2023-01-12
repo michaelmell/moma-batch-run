@@ -161,6 +161,10 @@ class GlFileManager(object):
         self.gl_directory_path = Path(gl_directory_path)
         self.analysisName = analysisName
 
+    def copy_track_data_to_backup_if_it_already_exists(self, backup_dir_postfix):
+        if self.get_gl_track_data_path().exists():
+            self.copy_track_data_to_backup(backup_dir_postfix)
+
     def copy_track_data_to_backup(self, backup_dir_postfix):
         self.copy_to_backup(self.get_gl_track_data_path(), backup_dir_postfix)
 
@@ -169,8 +173,16 @@ class GlFileManager(object):
             backup_path = Path(str(path_to_backup) + backup_dir_postfix)
             copy_tree(str(path_to_backup), str(backup_path))
 
+    def move_track_data_to_backup_if_it_already_exists(self, backup_dir_postfix):
+        if self.get_gl_track_data_path().exists():
+            self.move_track_data_to_backup(backup_dir_postfix)
+
     def move_track_data_to_backup(self, backup_dir_postfix):
         self.move_to_backup(self.get_gl_track_data_path(), backup_dir_postfix)
+
+    def move_export_data_to_backup_if_it_already_exists(self, backup_dir_postfix):
+        if self.get_gl_export_data_path().exists():
+            self.move_export_data_to_backup(backup_dir_postfix)
 
     def move_export_data_to_backup(self, backup_dir_postfix: str):
         self.move_to_backup(self.get_gl_export_data_path(), backup_dir_postfix)
@@ -539,18 +551,17 @@ def __main__():
         
         if cmd_args.track:
             if not gl_file_manager.get_gl_is_tracked() or cmd_args.force:
-                gl_file_manager.move_track_data_to_backup(backup_postfix)
-                gl_file_manager.move_export_data_to_backup(backup_postfix)
+                gl_file_manager.move_track_data_to_backup_if_it_already_exists(backup_postfix)
+                gl_file_manager.move_export_data_to_backup_if_it_already_exists(backup_postfix)
                 current_args_dict.update({'headless':None, 'trackonly':None})
                 moma_runner.run(getLogger(), gl_file_manager, current_args_dict)
                 gl_file_manager.set_gl_is_tracked()
             else:
                 getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already tracked for analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_track_data_path()}")
         elif cmd_args.curate:
-            if not gl_file_manager.get_gl_is_curated() or running_on_selection or cmd_args.force:
-                if gl_file_manager.get_gl_is_curated() or gl_file_manager.get_gl_is_exported():  # gl_file_manager.get_gl_is_exported(): handles the case that the GL was exported without curation
-                    gl_file_manager.copy_track_data_to_backup(backup_postfix)
-                    gl_file_manager.move_export_data_to_backup(backup_postfix)
+            if not gl_file_manager.get_gl_is_curated() or cmd_args.force:
+                gl_file_manager.copy_track_data_to_backup_if_it_already_exists(backup_postfix)
+                gl_file_manager.move_export_data_to_backup_if_it_already_exists(backup_postfix)
                 current_args_dict = {'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
                 moma_runner.run(getLogger(), gl_file_manager, current_args_dict)
                 gl_file_manager.set_gl_is_curated()
@@ -558,7 +569,8 @@ def __main__():
                 getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already curated for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
         elif cmd_args.export:
             if not gl_file_manager.get_gl_is_exported() or cmd_args.force:
-                gl_file_manager.move_export_data_to_backup(backup_postfix)
+                gl_file_manager.copy_track_data_to_backup_if_it_already_exists(backup_postfix)
+                gl_file_manager.move_export_data_to_backup_if_it_already_exists(backup_postfix)
                 current_args_dict = {'headless':None, 'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
                 moma_runner.run(getLogger(), gl_file_manager, current_args_dict)
             else:
