@@ -294,8 +294,8 @@ def add_moma_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
     gl_entry['moma_arg'].update({'analysis': config['default_moma_arg']['analysis']})  # always set the analysis name to the default name
     return gl_entry
 
-def calculate_log_file_path(yaml_config_file_path: Path):
-    return Path(os.path.join(yaml_config_file_path.parent,yaml_config_file_path.stem + '.log'))
+def calculate_log_file_path(yaml_config_file_path: Path, batch_operation_type: str):
+    return Path(os.path.join(yaml_config_file_path.parent,yaml_config_file_path.stem + batch_operation_type + '.log'))
 
 def getLogger() -> logging.Logger:
     return logging.getLogger('default')
@@ -488,10 +488,12 @@ def __main__():
         getLogger().error("Check argument 'yaml_config_file'; file not found at: {yaml_config_file_path}")
         exit(-1)
 
+    batch_operation_type = 'DELETE' if cmd_args.delete else 'TRACK' if cmd_args.track else 'CURATE' if cmd_args.curate else 'EXPORT' if cmd_args.export else 'UNDEFINED ERROR'
+    
     if cmd_args.log is not None:
         log_file = Path(cmd_args.log)
     else:
-        log_file = calculate_log_file_path(yaml_config_file_path)
+        log_file = calculate_log_file_path(yaml_config_file_path, batch_operation_type)
 
     with open(log_file, 'a') as f:
         if not f.writable():
@@ -535,7 +537,6 @@ def __main__():
 
     getLogger().info("BATCH RUN STARTED.")
     print_batch_version_to_log()  # print version to the log-file for later reference
-    batch_operation_type = 'DELETE' if cmd_args.delete else 'TRACK' if cmd_args.track else 'CURATE' if cmd_args.curate else 'EXPORT' if cmd_args.export else 'UNDEFINED ERROR'
     getLogger().info(f"Run type: {batch_operation_type}")
     batch_command_string = ' '.join(sys.argv)
     getLogger().info(f"Command: {batch_command_string}")
