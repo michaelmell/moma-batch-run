@@ -1,0 +1,26 @@
+file_version: 0.2.0
+preprocessing_path: /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/test_data/38__bor_20230401
+default_moma_arg:
+  p: '/home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties'
+  analysis: 'test_analysis'
+  tmax: 10
+pos:
+  1-Pos000:
+    gl: {
+      12: {
+          # moma_arg: {analysis: 'test_analysis'}
+        },
+      # 23:
+      # # {moma_arg:
+      # #   {tmin: 20,
+      # #     tmax: 80}
+      # #   }
+    }
+  #   moma_arg:
+  #     p: '/home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties'
+  #     tmax: 10
+  # 15:
+  #   gl: {4,
+  #        18}
+  #   # moma_arg: {tmax: 100}
+  # 21: {}

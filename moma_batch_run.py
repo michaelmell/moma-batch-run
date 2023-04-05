@@ -78,24 +78,28 @@ class StreamToLogger(object):
 def add_gl_path(gl_ind, gl_entry, pos_ind, pos_entry, config):
     input_path = config['preprocessing_path']
     gl_path=input_path
-    gl_path+=("/Pos"+str(pos_ind))
-    gl_path+="/Pos"+str(pos_ind)+"_"+"GL"+str(gl_ind)
+    if type(pos_ind) is int:
+        gl_path=os.path.join(gl_path,"Pos"+str(pos_ind),"Pos"+str(pos_ind)+"_"+"GL"+str(gl_ind))
+    elif type(pos_ind) is str:
+        gl_path = os.path.join(gl_path, pos_ind, str(pos_ind)+"_"+"GL"+str(gl_ind))
+    else:
+        raise RuntimeError(f"Unable to handle the dictionary-key for the position, which is of type (={str(type(pos_ind))}) and has value (={str(pos_ind)}).")
     gl_entry.update({'gl_path': gl_path})
     return gl_entry
 
 """
 This method caluclates the paths to the GL directories.
 """
-def get_gl_paths_for_position(input_path, positions, gl_paths, pos, config):
-    if positions[pos]: # GLs are defined for this position; iterate over them to generate list of paths
-        for gl in positions[pos]['gl']:
-            gl_path=input_path
-            gl_path+=("/Pos"+str(pos))
-            gl_path+="/Pos"+str(pos)+"_"+"GL"+str(gl)
-            gl_paths.append(gl_path)
-            if not config['pos'][pos]['gl'][gl]:
-                config['pos'][pos]['gl'][gl] = {}
-            config['pos'][pos]['gl'][gl].update({'gl_path': gl_path})
+# def get_gl_paths_for_position(input_path, positions, gl_paths, pos, config):
+#     if positions[pos]: # GLs are defined for this position; iterate over them to generate list of paths
+#         for gl in positions[pos]['gl']:
+#             gl_path=input_path
+#             gl_path+=("/Pos"+str(pos))
+#             gl_path+="/Pos"+str(pos)+"_"+"GL"+str(gl)
+#             gl_paths.append(gl_path)
+#             if not config['pos'][pos]['gl'][gl]:
+#                 config['pos'][pos]['gl'][gl] = {}
+#             config['pos'][pos]['gl'][gl].update({'gl_path': gl_path})
 
 def for_each_gl_in_config(config: dict, fnc):
     positions = config['pos']

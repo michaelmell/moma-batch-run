@@ -41,13 +41,24 @@
             "args" : ["-track","test_analysis.yaml"]
         },
         {
-            "name": "force-track",
+            // force-track test for testing YAML version 0.1.0
+            "name": "force-track-v0.1.0",
             "type": "python",
             "request": "launch",
             "program": "moma_batch_run.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args" : ["-f","-track","test_analysis.yaml"]
+        },
+        {
+            // force-track test for testing YAML version 0.2.0
+            "name": "force-track-v0.2.0",
+            "type": "python",
+            "request": "launch",
+            "program": "moma_batch_run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args" : ["-f","-track","test_analysis_v0.2.0.yaml"],
         },
         {
             "name": "curate",
