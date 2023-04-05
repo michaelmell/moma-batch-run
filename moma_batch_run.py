@@ -198,7 +198,7 @@ class GlFileManager(object):
 
     def get_tiff_path(self) -> Path:
         gl_path = self.get_gl_directory_path()
-        list_of_candidate_files = glob(str(gl_path)+'/*[0-9].tif')
+        list_of_candidate_files = glob(os.path.join(str(gl_path),'*[0-9].tif'))
         if not list_of_candidate_files:
             raise RuntimeError(f"Could not find the ROI TIFF file in directory: {gl_path}")
         elif len(list_of_candidate_files)>1:
