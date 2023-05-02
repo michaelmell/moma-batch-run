@@ -41,6 +41,15 @@
             "args" : ["-track","test_analysis_v0.1.0.yaml"]
         },
         {
+            "name": "track-v0.2.0",
+            "type": "python",
+            "request": "launch",
+            "program": "moma_batch_run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args" : ["-track","test_analysis_v0.2.0.yaml"]
+        },
+        {
             // force-track test for testing YAML version 0.1.0
             "name": "force-track-v0.1.0",
             "type": "python",
@@ -108,6 +117,15 @@
             "args" : ["-export","test_analysis_v0.1.0.yaml"]
         },
         {
+            "name": "export-v0.2.0",
+            "type": "python",
+            "request": "launch",
+            "program": "moma_batch_run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args" : ["-export","test_analysis_v0.2.0.yaml"]
+        },
+        {
             "name": "force-export",
             "type": "python",
             "request": "launch",
@@ -126,6 +144,15 @@
             "args" : ["-delete_gl_analysis","test_analysis_v0.1.0.yaml"]
         },
         {
+            "name": "delete-v0.2.0",
+            "type": "python",
+            "request": "launch",
+            "program": "moma_batch_run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args" : ["-delete_gl_analysis","test_analysis_v0.2.0.yaml"]
+        },
+        {
             "name": "force-delete",
             "type": "python",
             "request": "launch",
@@ -133,6 +160,15 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args" : ["-ff","-delete_gl_analysis","test_analysis_v0.1.0.yaml"]
+        },
+        {
+            "name": "force-delete-v0.2.0",
+            "type": "python",
+            "request": "launch",
+            "program": "moma_batch_run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args" : ["-ff","-delete_gl_analysis","test_analysis_v0.2.0.yaml"]
         },
         {
             "name": "track with per GL settings",
