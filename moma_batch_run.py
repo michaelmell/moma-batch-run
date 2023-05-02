@@ -228,8 +228,15 @@ class GlFileManager(object):
         return self.__get_analysis_metadata().tracked
     
     def get_gl_is_exported(self) -> bool:
-        return self.get_gl_export_data_path().exists()
+        return self._exported_files_exist()
     
+    def _exported_files_exist(self) -> bool:
+        if not self.get_gl_export_data_path().exists(): return False
+        if not glob(os.path.join(self.get_gl_export_data_path(),'CellStats*.csv')): return False
+        if not glob(os.path.join(self.get_gl_export_data_path(),'CellTracks*.csv')): return False
+        if not glob(os.path.join(self.get_gl_export_data_path(),'CellMasks*.tif')): return False
+        return True
+
     def set_gl_is_tracked(self):
         self.__get_analysis_metadata().tracked = True
     
