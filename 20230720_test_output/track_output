@@ -1,0 +1,1022 @@
+ > > > > > Starting LP for GL# 0 < < < < < 
+Optimize a model with 446 rows, 279 columns and 2949 nonzeros
+
+Variable types: 0 continuous, 279 integer (279 binary)
+
+Coefficient statistics:
+
+  Matrix range     [1e+00, 1e+03]
+
+  Objective range  [1e-03, 1e+01]
+
+  Bounds range     [1e+00, 1e+00]
+
+  RHS range        [1e+00, 1e+03]
+
+Found heuristic solution: objective -11.8904103
+
+Presolve removed 446 rows and 279 columns
+
+Presolve time: 0.00s
+
+Presolve: All rows and columns removed
+
+
+
+Explored 0 nodes (0 simplex iterations) in 0.01 seconds
+
+Thread count was 1 (of 12 available processors)
+
+
+
+Solution count 1: -11.8904 
+
+
+
+Optimal solution found (tolerance 1.00e-04)
+
+Best objective -1.189041033387e+01, best bound -1.189041033387e+01, gap 0.0000%
+
+Timer result for optimization time (IsTrackOnly: true, IsHeadless: false): 0.02
+Status: OPTIMAL
+--------- Start: CheckSolutionContinuityConstraintForTimestepBaseOnOptimalHypotheses ---------
+--------- End: CheckSolutionContinuityConstraintForTimestepBaseOnOptimalHypotheses ---------
+--------- Start: CheckContinuityConstraintForAllOptimalAssignments ---------
+--------- End: CheckContinuityConstraintForAllOptimalAssignments ---------
+
+ done!
+Timer result for loading GL (IsTrackOnly: true, IsHeadless: false): 2.497
+Optimize a model with 446 rows, 279 columns and 2949 nonzeros
+
+Variable types: 0 continuous, 279 integer (279 binary)
+
+Coefficient statistics:
+
+  Matrix range     [1e+00, 1e+03]
+
+  Objective range  [1e-03, 1e+01]
+
+  Bounds range     [1e+00, 1e+00]
+
+  RHS range        [1e+00, 1e+03]
+
+
+
+Loaded MIP start with objective -11.8904
+
+
+
+Presolve removed 446 rows and 279 columns
+
+Presolve time: 0.00s
+
+Presolve: All rows and columns removed
+
+
+
+Explored 0 nodes (0 simplex iterations) in 0.01 seconds
+
+Thread count was 1 (of 12 available processors)
+
+
+
+Solution count 1: -11.8904 
+
+
+
+Optimal solution found (tolerance 1.00e-04)
+
+Best objective -1.189041033387e+01, best bound -1.189041033387e+01, gap 0.0000%
+
+START: Export component intensities.
+FINISH: Export component intensities.
+Exporting assignment costs...
+Execution time: 0.007
+
+Timer result for AssignmentActivitiesExporter (IsTrackOnly: true, IsHeadless: false): 0.002
+Timer result for HypothesisActivitiesExporter (IsTrackOnly: true, IsHeadless: false): 0.002
+Timer result for saving tracking data (IsTrackOnly: true, IsHeadless: false): 0.451
+Exporting data...
+...done!
+Exporting collected cell-statistics...
+...done!
+ui_action: PanelWithSliders.timeStepSlider.ChangeListener fired; JSlider.getValue(): 1
+ui_action: PanelWithSliders.timeStepSlider.ChangeListener fired; JSlider.getValue(): 2
+ui_action: PanelWithSliders.timeStepSlider.ChangeListener fired; JSlider.getValue(): 3
+ui_action: PanelWithSliders.timeStepSlider.ChangeListener fired; JSlider.getValue(): 4
+Timer result for exporting results (IsTrackOnly: true, IsHeadless: false): 0.871
+Timer result for total runtime (IsTrackOnly: true, IsHeadless: false): 3.847
+2023-07-20 16:04:21,596 - INFO - FINISHED MOMA.
+2023-07-20 16:04:21,597 - INFO - BATCH RUN FINISHED.
+(base) micha@ierbert2:/home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script$ source /home/micha/Documents/01_work/git/mmpreprocesspy/mmpreprocesspy_conda_environment/bin/activate /home/micha/Documents/01_work/git/mmpreprocesspy/mmpreprocesspy_conda_environment^C
+(base) micha@ierbert2:/home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script$  cd /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script ; /usr/bin/env /home/micha/Documents/01_work/git/mmpreprocesspy/mmpreprocesspy_conda_environment/bin/python /home/micha/.vscode/extensions/ms-python.python-2023.12.0/pythonFiles/lib/python/debugpy/adapter/../../debugpy/launcher 40523 -- moma_batch_run.py -f -track test_analysis_v0.2.0.yaml 
+2023-07-20 16:05:59,430 - WARNING - Forced run will OVERWRITE existing data (option '-f/--force'). Do you want to continue?[y/N] 
+y
+2023-07-20 16:06:01,473 - INFO - Performing forced run.
+2023-07-20 16:06:01,473 - INFO - BATCH RUN STARTED.
+2023-07-20 16:06:01,473 - INFO - Batch script version: 0.4.0-dev
+2023-07-20 16:06:01,473 - INFO - Run type: TRACK
+2023-07-20 16:06:01,474 - INFO - Command: moma_batch_run.py -f -track test_analysis_v0.2.0.yaml
+2023-07-20 16:06:01,474 - INFO - Any backups created during this run are appended with postfix: __BKP_20230720-160559
+2023-07-20 16:06:01,478 - INFO - RUN MOMA: moma -p /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties -analysis test_analysis -headless -trackonly -i /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/test_data/38__bor_20230401/1-Pos000/1-Pos000_GL9/20230401_nat_iso_carbon_med3_1_MMStack__1-Pos000_GL9.tif
+2023-07-20 16:06:01,478 - INFO - LOG MOMA: /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/test_data/38__bor_20230401/1-Pos000/1-Pos000_GL9/test_analysis/track_data__test_analysis/moma.log
+>>> Starting MM in headless mode.
+Academic license - for non-commercial use only
+Warning: Gurobi version mismatch between Java 8.1.0 and C library 8.1.1
+Warning: Gurobi version mismatch between Java 8.1.0 and Jni 8.1.1
+
+######################################################
+Running first time analysis:
+input path: /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/test_data/38__bor_20230401/1-Pos000/1-Pos000_GL9/20230401_nat_iso_carbon_med3_1_MMStack__1-Pos000_GL9.tif
+analysis name: test_analysis
+######################################################
+
+Loading images ...
+Determined minTime: 1
+Determined maxTime: 5
+Determined minChannelIdx: 1
+Determined numChannels: 3
+VERSION: 0.9.4+daac83a9
+size before dupl 4
+size after dupl 4
+size before dupl 4
+size after dupl 4
+size before dupl 4
+size after dupl 4
+log4j:WARN No appenders could be found for logger (org.bushe.swing.event.EventService).
+log4j:WARN Please initialize the log4j system properly.
+log4j:WARN See http://logging.apache.org/log4j/1.2/faq.html#noconfig for more info.
+[ERROR] Cannot create plugin: class='org.scijava.plugins.scripting.jython.JythonScriptLanguage', name='Python', priority=0.0, enabled=true, pluginType=ScriptLanguage
+[ERROR] Cannot create plugin: class='org.scijava.plugins.scripting.renjin.RenjinScriptLanguage', name='R', priority=0.0, enabled=true, pluginType=ScriptLanguage
+[ERROR] Cannot create plugin: class='org.scijava.plugins.scripting.jruby.JRubyScriptLanguage', name='Ruby', priority=0.0, enabled=true, pluginType=ScriptLanguage
+[ERROR] Cannot create plugin: class='org.scijava.plugins.scripting.scala.ScalaScriptLanguage', name='Scala', priority=0.0, enabled=true, pluginType=ScriptLanguage
+Searching for Growthlanes... done!
+Generating Segmentation Hypotheses...
+[INFO] imagej-tensorflow version: ${git.closest.tag.name}.${git.commit.time}.${git.commit.id.abbrev}
+[INFO] tensorflow version: 1.12.0
+[INFO] The current library path is: LD_LIBRARY_PATH=/usr/local/cuda/lib64:/opt/gurobi811/linux64/lib:/usr/local/cuda/lib64:/opt/gurobi811/linux64/lib:/usr/local/cuda/lib64:/opt/gurobi811/linux64/lib:/opt/gurobi811/linux64/lib
+[INFO] Couldn't load tensorflow GPU support.
+[INFO] If the problem is CUDA related, make sure CUDA and cuDNN are in the LD_LIBRARY_PATH.
+[INFO] Using CPU version.
+[INFO] Loading TensorFlow model GenericNetwork_5b4d7498a4f74430fe6710f3fb1f4e39 from source file file:/home/micha/.moma/unet_models/model_20210715_5b27d7aa/current_tensorflow_model.zip
+[INFO] Caching TensorFlow models to /home/micha/Documents/01_work/git/MoMA/models
+2023-07-20 16:06:04.858736: I tensorflow/cc/saved_model/reader.cc:31] Reading SavedModel from: /home/micha/Documents/01_work/git/MoMA/models/GenericNetwork_5b4d7498a4f74430fe6710f3fb1f4e39
+2023-07-20 16:06:04.939446: I tensorflow/cc/saved_model/reader.cc:54] Reading meta graph with tags { serve }
+2023-07-20 16:06:05.017855: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2023-07-20 16:06:05.316519: I tensorflow/cc/saved_model/loader.cc:162] Restoring SavedModel bundle.
+2023-07-20 16:06:05.560348: I tensorflow/cc/saved_model/loader.cc:138] Running MainOp with key legacy_init_op on SavedModel bundle.
+2023-07-20 16:06:05.560375: I tensorflow/cc/saved_model/loader.cc:259] SavedModel load for tags { serve }; Status: success. Took 701652 microseconds.
+[INFO] Shape of input tensor: [-1, -1, -1, 1]
+[INFO] Shape of output tensor: [-1, -1, -1, 1]
+[INFO] Dataset type: 32-bit signed float, converting to FloatType.
+[INFO] Dataset dimensions: [32, 459, 5]
+[INFO] INPUT NODE: 
+[INFO] Mapping of tensor input: 
+[INFO]    datasetAxes:[X, Y, Z]
+[INFO]    nodeAxes:[(Z, -1), (Y, -1), (X, -1), (Channel, 1)]
+[INFO]    mapping:[2, 1, 0, 3]
+[INFO] OUTPUT NODE: 
+[INFO] Mapping of tensor output: 
+[INFO]    datasetAxes:[X, Y, Z]
+[INFO]    nodeAxes:[(Z, -1), (Y, -1), (X, -1), (Channel, 1)]
+[INFO]    mapping:[2, 1, 0, 3]
+[INFO] Complete input axes: [X, Y, Z, Channel]
+[INFO] Tiling actions: [TILE_WITH_PADDING, TILE_WITH_PADDING, TILE_WITHOUT_PADDING, NO_TILING]
+[INFO] Dividing image into 5 tile(s)..
+[INFO] Size of single image tile: [32, 464, 1, 1]
+[INFO] Final image tiling: [1, 1, 5, 1]
+[INFO] Network input size: [32, 464, 1, 1]
+[INFO] Processing tile 1..
+[INFO] Processing tile 2..
+[INFO] Processing tile 3..
+[INFO] Processing tile 4..
+[INFO] Processing tile 5..
+[INFO] Network output size: [32, 464, 1, 1]
+[INFO] POSTPROCESSING
+[INFO] Output axes: [X, Y, Z, Channel]
+[INFO] Merging tiles..
+[INFO] Crop to original size..
+[INFO] Output axes: [X, Y, Z, Channel]
+[INFO] Displaying result image..
+[INFO] img dim before wrapping into dataset: [32, 459, 5]
+[INFO] Plugin exit (took 2577 milliseconds)
+Frame: 1/5
+Frame: 2/5
+Frame: 3/5
+Frame: 4/5
+Frame: 5/5
+Timer result for generating components (IsTrackOnly: true, IsHeadless: true): 1.474
+ done!
+Generating Integer Linear Program...
+Academic license - for non-commercial use only
+Warning: Gurobi version mismatch between Java 8.1.0 and C library 8.1.1
+Warning: Gurobi version mismatch between Java 8.1.0 and Jni 8.1.1
+Academic license - for non-commercial use only
+Warning: Gurobi version mismatch between Java 8.1.0 and C library 8.1.1
+Warning: Gurobi version mismatch between Java 8.1.0 and Jni 8.1.1
+START: Filter assignments.
+FINISH: Filter assignments.
+Timer result for creating assignments (IsTrackOnly: true, IsHeadless: true): 0.099
+########### ILP STATISTICS START ###########
+Number of all components in component-trees (IsTrackOnly: true, IsHeadless: true): 28
+Number of components in ILP (IsTrackOnly: true, IsHeadless: true): 28
+Number of root components (IsTrackOnly: true, IsHeadless: true): 28
+Number of leaf components (IsTrackOnly: true, IsHeadless: true): 28
+Number of assignments (IsTrackOnly: true, IsHeadless: true): 120
+########### ILP STATISTICS END ###########
+ done!
+Running Integer Linear Program...
+ > > > > > Starting LP for GL# 0 < < < < < 
+Optimize a model with 95 rows, 120 columns and 740 nonzeros
+
+Variable types: 0 continuous, 120 integer (120 binary)
+
+Coefficient statistics:
+
+  Matrix range     [1e+00, 6e+01]
+
+  Objective range  [1e-02, 1e+01]
+
+  Bounds range     [1e+00, 1e+00]
+
+  RHS range        [1e+00, 6e+01]
+
+Found heuristic solution: objective 0.0000000
+
+Presolve removed 79 rows and 102 columns
+
+Presolve time: 0.01s
+
+Presolved: 16 rows, 18 columns, 78 nonzeros
+
+Variable types: 0 continuous, 18 integer (18 binary)
+
+0.0 0 0 0.0 -11.996482819318771 1 0
+
+
+Root relaxation: objective -8.669565e+00, 4 iterations, 0.00 seconds
+
+
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+
+
+*    0     0               0      -8.6695650   -8.66956  0.00%     -    0s
+
+
+
+Explored 0 nodes (4 simplex iterations) in 0.02 seconds
+
+Thread count was 12 (of 12 available processors)
+
+
+
+Solution count 2: -8.66956 0 
+
+
+
+Optimal solution found (tolerance 1.00e-04)
+
+Best objective -8.669564992189e+00, best bound -8.669564992189e+00, gap 0.0000%
+
+Timer result for optimization time (IsTrackOnly: true, IsHeadless: true): 0.029
+Status: OPTIMAL
+--------- Start: CheckSolutionContinuityConstraintForTimestepBaseOnOptimalHypotheses ---------
+--------- End: CheckSolutionContinuityConstraintForTimestepBaseOnOptimalHypotheses ---------
+--------- Start: CheckContinuityConstraintForAllOptimalAssignments ---------
+--------- End: CheckContinuityConstraintForAllOptimalAssignments ---------
+
+ done!
+Timer result for loading GL (IsTrackOnly: true, IsHeadless: true): 6.145
+Optimize a model with 215 rows, 120 columns and 860 nonzeros
+
+Variable types: 0 continuous, 120 integer (120 binary)
+
+Coefficient statistics:
+
+  Matrix range     [1e+00, 6e+01]
+
+  Objective range  [1e-02, 1e+01]
+
+  Bounds range     [1e+00, 1e+00]
+
+  RHS range        [1e+00, 6e+01]
+
+
+
+Loaded MIP start with objective -8.66956
+
+
+
+Presolve removed 215 rows and 120 columns
+
+Presolve time: 0.00s
+
+Presolve: All rows and columns removed
+
+
+
+Explored 0 nodes (0 simplex iterations) in 0.01 seconds
+
+Thread count was 1 (of 12 available processors)
+
+
+
+Solution count 1: -8.66956 
+
+
+
+Optimal solution found (tolerance 1.00e-04)
+
+Best objective -8.669564992189e+00, best bound -8.669564992189e+00, gap 0.0000%
+
+START: Export component intensities.
+FINISH: Export component intensities.
+Exporting assignment costs...
+Execution time: 0.004
+
+Timer result for AssignmentActivitiesExporter (IsTrackOnly: true, IsHeadless: true): 0.007
+Timer result for HypothesisActivitiesExporter (IsTrackOnly: true, IsHeadless: true): 0.003
+Timer result for saving tracking data (IsTrackOnly: true, IsHeadless: true): 0.215
+Timer result for total runtime (IsTrackOnly: true, IsHeadless: true): 6.364
+2023-07-20 16:06:09,368 - INFO - FINISHED MOMA.
+2023-07-20 16:06:09,371 - INFO - RUN MOMA: moma -p /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties -analysis test_analysis -headless -trackonly -i /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/test_data/38__bor_20230401/1-Pos000/1-Pos000_GL23/20230401_nat_iso_carbon_med3_1_MMStack__1-Pos000_GL23.tif
+2023-07-20 16:06:09,371 - INFO - LOG MOMA: /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/test_data/38__bor_20230401/1-Pos000/1-Pos000_GL23/test_analysis/track_data__test_analysis/moma.log
+>>> Starting MM in headless mode.
+Academic license - for non-commercial use only
+Warning: Gurobi version mismatch between Java 8.1.0 and C library 8.1.1
+Warning: Gurobi version mismatch between Java 8.1.0 and Jni 8.1.1
+
+######################################################
+Running first time analysis:
+input path: /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/test_data/38__bor_20230401/1-Pos000/1-Pos000_GL23/20230401_nat_iso_carbon_med3_1_MMStack__1-Pos000_GL23.tif
+analysis name: test_analysis
+######################################################
+
+Loading images ...
+Determined minTime: 1
+Determined maxTime: 5
+Determined minChannelIdx: 1
+Determined numChannels: 3
+VERSION: 0.9.4+daac83a9
+size before dupl 4
+size after dupl 4
+size before dupl 4
+size after dupl 4
+size before dupl 4
+size after dupl 4
+log4j:WARN No appenders could be found for logger (org.bushe.swing.event.EventService).
+log4j:WARN Please initialize the log4j system properly.
+log4j:WARN See http://logging.apache.org/log4j/1.2/faq.html#noconfig for more info.
+[ERROR] Cannot create plugin: class='org.scijava.plugins.scripting.jython.JythonScriptLanguage', name='Python', priority=0.0, enabled=true, pluginType=ScriptLanguage
+[ERROR] Cannot create plugin: class='org.scijava.plugins.scripting.renjin.RenjinScriptLanguage', name='R', priority=0.0, enabled=true, pluginType=ScriptLanguage
+[ERROR] Cannot create plugin: class='org.scijava.plugins.scripting.jruby.JRubyScriptLanguage', name='Ruby', priority=0.0, enabled=true, pluginType=ScriptLanguage
+[ERROR] Cannot create plugin: class='org.scijava.plugins.scripting.scala.ScalaScriptLanguage', name='Scala', priority=0.0, enabled=true, pluginType=ScriptLanguage
+Searching for Growthlanes... done!
+Generating Segmentation Hypotheses...
+[INFO] imagej-tensorflow version: ${git.closest.tag.name}.${git.commit.time}.${git.commit.id.abbrev}
+[INFO] tensorflow version: 1.12.0
+[INFO] The current library path is: LD_LIBRARY_PATH=/usr/local/cuda/lib64:/opt/gurobi811/linux64/lib:/usr/local/cuda/lib64:/opt/gurobi811/linux64/lib:/usr/local/cuda/lib64:/opt/gurobi811/linux64/lib:/opt/gurobi811/linux64/lib
+[INFO] Couldn't load tensorflow GPU support.
+[INFO] If the problem is CUDA related, make sure CUDA and cuDNN are in the LD_LIBRARY_PATH.
+[INFO] Using CPU version.
+[INFO] Loading TensorFlow model GenericNetwork_5b4d7498a4f74430fe6710f3fb1f4e39 from source file file:/home/micha/.moma/unet_models/model_20210715_5b27d7aa/current_tensorflow_model.zip
+[INFO] Caching TensorFlow models to /home/micha/Documents/01_work/git/MoMA/models
+2023-07-20 16:06:12.814623: I tensorflow/cc/saved_model/reader.cc:31] Reading SavedModel from: /home/micha/Documents/01_work/git/MoMA/models/GenericNetwork_5b4d7498a4f74430fe6710f3fb1f4e39
+2023-07-20 16:06:12.888531: I tensorflow/cc/saved_model/reader.cc:54] Reading meta graph with tags { serve }
+2023-07-20 16:06:12.985413: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2023-07-20 16:06:13.347877: I tensorflow/cc/saved_model/loader.cc:162] Restoring SavedModel bundle.
+2023-07-20 16:06:13.596752: I tensorflow/cc/saved_model/loader.cc:138] Running MainOp with key legacy_init_op on SavedModel bundle.
+2023-07-20 16:06:13.596778: I tensorflow/cc/saved_model/loader.cc:259] SavedModel load for tags { serve }; Status: success. Took 782171 microseconds.
+[INFO] Shape of input tensor: [-1, -1, -1, 1]
+[INFO] Shape of output tensor: [-1, -1, -1, 1]
+[INFO] Dataset type: 32-bit signed float, converting to FloatType.
+[INFO] Dataset dimensions: [32, 456, 5]
+[INFO] INPUT NODE: 
+[INFO] Mapping of tensor input: 
+[INFO]    datasetAxes:[X, Y, Z]
+[INFO]    nodeAxes:[(Z, -1), (Y, -1), (X, -1), (Channel, 1)]
+[INFO]    mapping:[2, 1, 0, 3]
+[INFO] OUTPUT NODE: 
+[INFO] Mapping of tensor output: 
+[INFO]    datasetAxes:[X, Y, Z]
+[INFO]    nodeAxes:[(Z, -1), (Y, -1), (X, -1), (Channel, 1)]
+[INFO]    mapping:[2, 1, 0, 3]
+[INFO] Complete input axes: [X, Y, Z, Channel]
+[INFO] Tiling actions: [TILE_WITH_PADDING, TILE_WITH_PADDING, TILE_WITHOUT_PADDING, NO_TILING]
+[INFO] Dividing image into 5 tile(s)..
+[INFO] Size of single image tile: [32, 456, 1, 1]
+[INFO] Final image tiling: [1, 1, 5, 1]
+[INFO] Network input size: [32, 456, 1, 1]
+[INFO] Processing tile 1..
+[INFO] Processing tile 2..
+[INFO] Processing tile 3..
+[INFO] Processing tile 4..
+[INFO] Processing tile 5..
+[INFO] Network output size: [32, 456, 1, 1]
+[INFO] POSTPROCESSING
+[INFO] Output axes: [X, Y, Z, Channel]
+[INFO] Merging tiles..
+[INFO] Crop to original size..
+[INFO] Output axes: [X, Y, Z, Channel]
+[INFO] Displaying result image..
+[INFO] img dim before wrapping into dataset: [32, 456, 5]
+[INFO] Plugin exit (took 2810 milliseconds)
+Frame: 1/5
+Frame: 2/5
+Frame: 3/5
+Frame: 4/5
+Frame: 5/5
+Timer result for generating components (IsTrackOnly: true, IsHeadless: true): 1.801
+ done!
+Generating Integer Linear Program...
+Academic license - for non-commercial use only
+Warning: Gurobi version mismatch between Java 8.1.0 and C library 8.1.1
+Warning: Gurobi version mismatch between Java 8.1.0 and Jni 8.1.1
+Academic license - for non-commercial use only
+Warning: Gurobi version mismatch between Java 8.1.0 and C library 8.1.1
+Warning: Gurobi version mismatch between Java 8.1.0 and Jni 8.1.1
+START: Filter assignments.
+FINISH: Filter assignments.
+Timer result for creating assignments (IsTrackOnly: true, IsHeadless: true): 0.216
+########### ILP STATISTICS START ###########
+Number of all components in component-trees (IsTrackOnly: true, IsHeadless: true): 57
+Number of components in ILP (IsTrackOnly: true, IsHeadless: true): 57
+Number of root components (IsTrackOnly: true, IsHeadless: true): 55
+Number of leaf components (IsTrackOnly: true, IsHeadless: true): 56
+Number of assignments (IsTrackOnly: true, IsHeadless: true): 380
+########### ILP STATISTICS END ###########
+ done!
+Running Integer Linear Program...
+ > > > > > Starting LP for GL# 0 < < < < < 
+Optimize a model with 201 rows, 380 columns and 4542 nonzeros
+
+Variable types: 0 continuous, 380 integer (380 binary)
+
+Coefficient statistics:
+
+  Matrix range     [1e+00, 4e+03]
+
+  Objective range  [6e-03, 1e+01]
+
+  Bounds range     [1e+00, 1e+00]
+
+  RHS range        [1e+00, 4e+03]
+
+Found heuristic solution: objective 0.0000000
+
+Presolve removed 47 rows and 81 columns
+
+Presolve time: 0.04s
+
+Presolved: 154 rows, 299 columns, 3239 nonzeros
+
+Variable types: 0 continuous, 299 integer (299 binary)
+
+0.0 0 0 0.0 -28.535334922373295 1 0
+
+
+Root relaxation: objective -1.366763e+01, 35 iterations, 0.00 seconds
+
+
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+
+
+*    0     0               0     -13.6676260  -13.66763  0.00%     -    0s
+
+
+
+Explored 0 nodes (35 simplex iterations) in 0.05 seconds
+
+Thread count was 12 (of 12 available processors)
+
+
+
+Solution count 2: -13.6676 0 
+
+
+
+Optimal solution found (tolerance 1.00e-04)
+
+Best objective -1.366762596369e+01, best bound -1.366762596369e+01, gap 0.0000%
+
+Timer result for optimization time (IsTrackOnly: true, IsHeadless: true): 0.056
+Status: OPTIMAL
+--------- Start: CheckSolutionContinuityConstraintForTimestepBaseOnOptimalHypotheses ---------
+--------- End: CheckSolutionContinuityConstraintForTimestepBaseOnOptimalHypotheses ---------
+--------- Start: CheckContinuityConstraintForAllOptimalAssignments ---------
+--------- End: CheckContinuityConstraintForAllOptimalAssignments ---------
+
+ done!
+Timer result for loading GL (IsTrackOnly: true, IsHeadless: true): 6.887
+Optimize a model with 581 rows, 380 columns and 4922 nonzeros
+
+Variable types: 0 continuous, 380 integer (380 binary)
+
+Coefficient statistics:
+
+  Matrix range     [1e+00, 4e+03]
+
+  Objective range  [6e-03, 1e+01]
+
+  Bounds range     [1e+00, 1e+00]
+
+  RHS range        [1e+00, 4e+03]
+
+
+
+Loaded MIP start with objective -13.6676
+
+
+
+Presolve removed 581 rows and 380 columns
+
+Presolve time: 0.00s
+
+Presolve: All rows and columns removed
+
+
+
+Explored 0 nodes (0 simplex iterations) in 0.01 seconds
+
+Thread count was 1 (of 12 available processors)
+
+
+
+Solution count 1: -13.6676 
+
+
+
+Optimal solution found (tolerance 1.00e-04)
+
+Best objective -1.366762596369e+01, best bound -1.366762596369e+01, gap 0.0000%
+
+START: Export component intensities.
+FINISH: Export component intensities.
+Exporting assignment costs...
+Execution time: 0.009
+
+Timer result for AssignmentActivitiesExporter (IsTrackOnly: true, IsHeadless: true): 0.009
+Timer result for HypothesisActivitiesExporter (IsTrackOnly: true, IsHeadless: true): 0.002
+Timer result for saving tracking data (IsTrackOnly: true, IsHeadless: true): 0.319
+Timer result for total runtime (IsTrackOnly: true, IsHeadless: true): 7.21
+2023-07-20 16:06:18,097 - INFO - FINISHED MOMA.
+2023-07-20 16:06:18,099 - INFO - RUN MOMA: moma -p /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties -analysis test_analysis -headless -trackonly -i /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/test_data/38__bor_20230401/1-Pos002/1-Pos002_GL21/20230401_nat_iso_carbon_med3_1_MMStack__1-Pos002_GL21.tif
+2023-07-20 16:06:18,099 - INFO - LOG MOMA: /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/test_data/38__bor_20230401/1-Pos002/1-Pos002_GL21/test_analysis/track_data__test_analysis/moma.log
+>>> Starting MM in headless mode.
+Academic license - for non-commercial use only
+Warning: Gurobi version mismatch between Java 8.1.0 and C library 8.1.1
+Warning: Gurobi version mismatch between Java 8.1.0 and Jni 8.1.1
+
+######################################################
+Running first time analysis:
+input path: /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/test_data/38__bor_20230401/1-Pos002/1-Pos002_GL21/20230401_nat_iso_carbon_med3_1_MMStack__1-Pos002_GL21.tif
+analysis name: test_analysis
+######################################################
+
+Loading images ...
+Determined minTime: 1
+Determined maxTime: 5
+Determined minChannelIdx: 1
+Determined numChannels: 3
+VERSION: 0.9.4+daac83a9
+size before dupl 4
+size after dupl 4
+size before dupl 4
+size after dupl 4
+size before dupl 4
+size after dupl 4
+log4j:WARN No appenders could be found for logger (org.bushe.swing.event.EventService).
+log4j:WARN Please initialize the log4j system properly.
+log4j:WARN See http://logging.apache.org/log4j/1.2/faq.html#noconfig for more info.
+[ERROR] Cannot create plugin: class='org.scijava.plugins.scripting.jython.JythonScriptLanguage', name='Python', priority=0.0, enabled=true, pluginType=ScriptLanguage
+[ERROR] Cannot create plugin: class='org.scijava.plugins.scripting.renjin.RenjinScriptLanguage', name='R', priority=0.0, enabled=true, pluginType=ScriptLanguage
+[ERROR] Cannot create plugin: class='org.scijava.plugins.scripting.jruby.JRubyScriptLanguage', name='Ruby', priority=0.0, enabled=true, pluginType=ScriptLanguage
+[ERROR] Cannot create plugin: class='org.scijava.plugins.scripting.scala.ScalaScriptLanguage', name='Scala', priority=0.0, enabled=true, pluginType=ScriptLanguage
+Searching for Growthlanes... done!
+Generating Segmentation Hypotheses...
+[INFO] imagej-tensorflow version: ${git.closest.tag.name}.${git.commit.time}.${git.commit.id.abbrev}
+[INFO] tensorflow version: 1.12.0
+[INFO] The current library path is: LD_LIBRARY_PATH=/usr/local/cuda/lib64:/opt/gurobi811/linux64/lib:/usr/local/cuda/lib64:/opt/gurobi811/linux64/lib:/usr/local/cuda/lib64:/opt/gurobi811/linux64/lib:/opt/gurobi811/linux64/lib
+[INFO] Couldn't load tensorflow GPU support.
+[INFO] If the problem is CUDA related, make sure CUDA and cuDNN are in the LD_LIBRARY_PATH.
+[INFO] Using CPU version.
+[INFO] Loading TensorFlow model GenericNetwork_5b4d7498a4f74430fe6710f3fb1f4e39 from source file file:/home/micha/.moma/unet_models/model_20210715_5b27d7aa/current_tensorflow_model.zip
+[INFO] Caching TensorFlow models to /home/micha/Documents/01_work/git/MoMA/models
+2023-07-20 16:06:21.610835: I tensorflow/cc/saved_model/reader.cc:31] Reading SavedModel from: /home/micha/Documents/01_work/git/MoMA/models/GenericNetwork_5b4d7498a4f74430fe6710f3fb1f4e39
+2023-07-20 16:06:21.684973: I tensorflow/cc/saved_model/reader.cc:54] Reading meta graph with tags { serve }
+2023-07-20 16:06:21.772522: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2023-07-20 16:06:22.069131: I tensorflow/cc/saved_model/loader.cc:162] Restoring SavedModel bundle.
+2023-07-20 16:06:22.309463: I tensorflow/cc/saved_model/loader.cc:138] Running MainOp with key legacy_init_op on SavedModel bundle.
+2023-07-20 16:06:22.309493: I tensorflow/cc/saved_model/loader.cc:259] SavedModel load for tags { serve }; Status: success. Took 698670 microseconds.
+[INFO] Shape of input tensor: [-1, -1, -1, 1]
+[INFO] Shape of output tensor: [-1, -1, -1, 1]
+[INFO] Dataset type: 32-bit signed float, converting to FloatType.
+[INFO] Dataset dimensions: [32, 456, 5]
+[INFO] INPUT NODE: 
+[INFO] Mapping of tensor input: 
+[INFO]    datasetAxes:[X, Y, Z]
+[INFO]    nodeAxes:[(Z, -1), (Y, -1), (X, -1), (Channel, 1)]
+[INFO]    mapping:[2, 1, 0, 3]
+[INFO] OUTPUT NODE: 
+[INFO] Mapping of tensor output: 
+[INFO]    datasetAxes:[X, Y, Z]
+[INFO]    nodeAxes:[(Z, -1), (Y, -1), (X, -1), (Channel, 1)]
+[INFO]    mapping:[2, 1, 0, 3]
+[INFO] Complete input axes: [X, Y, Z, Channel]
+[INFO] Tiling actions: [TILE_WITH_PADDING, TILE_WITH_PADDING, TILE_WITHOUT_PADDING, NO_TILING]
+[INFO] Dividing image into 5 tile(s)..
+[INFO] Size of single image tile: [32, 456, 1, 1]
+[INFO] Final image tiling: [1, 1, 5, 1]
+[INFO] Network input size: [32, 456, 1, 1]
+[INFO] Processing tile 1..
+[INFO] Processing tile 2..
+[INFO] Processing tile 3..
+[INFO] Processing tile 4..
+[INFO] Processing tile 5..
+[INFO] Network output size: [32, 456, 1, 1]
+[INFO] POSTPROCESSING
+[INFO] Output axes: [X, Y, Z, Channel]
+[INFO] Merging tiles..
+[INFO] Crop to original size..
+[INFO] Output axes: [X, Y, Z, Channel]
+[INFO] Displaying result image..
+[INFO] img dim before wrapping into dataset: [32, 456, 5]
+[INFO] Plugin exit (took 2614 milliseconds)
+Frame: 1/5
+Frame: 2/5
+Frame: 3/5
+Frame: 4/5
+Frame: 5/5
+Timer result for generating components (IsTrackOnly: true, IsHeadless: true): 2.528
+ done!
+Generating Integer Linear Program...
+Academic license - for non-commercial use only
+Warning: Gurobi version mismatch between Java 8.1.0 and C library 8.1.1
+Warning: Gurobi version mismatch between Java 8.1.0 and Jni 8.1.1
+Academic license - for non-commercial use only
+Warning: Gurobi version mismatch between Java 8.1.0 and C library 8.1.1
+Warning: Gurobi version mismatch between Java 8.1.0 and Jni 8.1.1
+START: Filter assignments.
+FINISH: Filter assignments.
+Timer result for creating assignments (IsTrackOnly: true, IsHeadless: true): 0.191
+########### ILP STATISTICS START ###########
+Number of all components in component-trees (IsTrackOnly: true, IsHeadless: true): 58
+Number of components in ILP (IsTrackOnly: true, IsHeadless: true): 57
+Number of root components (IsTrackOnly: true, IsHeadless: true): 53
+Number of leaf components (IsTrackOnly: true, IsHeadless: true): 55
+Number of assignments (IsTrackOnly: true, IsHeadless: true): 388
+########### ILP STATISTICS END ###########
+ done!
+Running Integer Linear Program...
+ > > > > > Starting LP for GL# 0 < < < < < 
+Optimize a model with 225 rows, 388 columns and 4603 nonzeros
+
+Variable types: 0 continuous, 388 integer (388 binary)
+
+Coefficient statistics:
+
+  Matrix range     [1e+00, 2e+03]
+
+  Objective range  [1e-02, 1e+01]
+
+  Bounds range     [1e+00, 1e+00]
+
+  RHS range        [1e+00, 2e+03]
+
+Found heuristic solution: objective 0.0000000
+
+Presolve removed 70 rows and 89 columns
+
+Presolve time: 0.03s
+
+Presolved: 155 rows, 299 columns, 3315 nonzeros
+
+Variable types: 0 continuous, 299 integer (299 binary)
+
+0.0 0 0 0.0 -29.665618062019348 1 0
+
+
+Root relaxation: objective -1.310418e+01, 40 iterations, 0.00 seconds
+
+
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+
+
+*    0     0               0     -13.1041789  -13.10418  0.00%     -    0s
+
+
+
+Explored 0 nodes (40 simplex iterations) in 0.05 seconds
+
+Thread count was 12 (of 12 available processors)
+
+
+
+Solution count 2: -13.1042 0 
+
+
+
+Optimal solution found (tolerance 1.00e-04)
+
+Best objective -1.310417886078e+01, best bound -1.310417886078e+01, gap 0.0000%
+
+Timer result for optimization time (IsTrackOnly: true, IsHeadless: true): 0.053
+Status: OPTIMAL
+--------- Start: CheckSolutionContinuityConstraintForTimestepBaseOnOptimalHypotheses ---------
+--------- End: CheckSolutionContinuityConstraintForTimestepBaseOnOptimalHypotheses ---------
+--------- Start: CheckContinuityConstraintForAllOptimalAssignments ---------
+--------- End: CheckContinuityConstraintForAllOptimalAssignments ---------
+
+ done!
+Timer result for loading GL (IsTrackOnly: true, IsHeadless: true): 7.554
+Optimize a model with 613 rows, 388 columns and 4991 nonzeros
+
+Variable types: 0 continuous, 388 integer (388 binary)
+
+Coefficient statistics:
+
+  Matrix range     [1e+00, 2e+03]
+
+  Objective range  [1e-02, 1e+01]
+
+  Bounds range     [1e+00, 1e+00]
+
+  RHS range        [1e+00, 2e+03]
+
+
+
+Loaded MIP start with objective -13.1042
+
+
+
+Presolve removed 613 rows and 388 columns
+
+Presolve time: 0.00s
+
+Presolve: All rows and columns removed
+
+
+
+Explored 0 nodes (0 simplex iterations) in 0.01 seconds
+
+Thread count was 1 (of 12 available processors)
+
+
+
+Solution count 1: -13.1042 
+
+
+
+Optimal solution found (tolerance 1.00e-04)
+
+Best objective -1.310417886078e+01, best bound -1.310417886078e+01, gap 0.0000%
+
+START: Export component intensities.
+FINISH: Export component intensities.
+Exporting assignment costs...
+Execution time: 0.01
+
+Timer result for AssignmentActivitiesExporter (IsTrackOnly: true, IsHeadless: true): 0.009
+Timer result for HypothesisActivitiesExporter (IsTrackOnly: true, IsHeadless: true): 0.002
+Timer result for saving tracking data (IsTrackOnly: true, IsHeadless: true): 0.316
+Timer result for total runtime (IsTrackOnly: true, IsHeadless: true): 7.874
+2023-07-20 16:06:27,569 - INFO - FINISHED MOMA.
+2023-07-20 16:06:27,571 - INFO - RUN MOMA: moma -p /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties -analysis test_analysis -headless -trackonly -i /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/test_data/38__bor_20230401/1-Pos002/1-Pos002_GL14/20230401_nat_iso_carbon_med3_1_MMStack__1-Pos002_GL14.tif
+2023-07-20 16:06:27,572 - INFO - LOG MOMA: /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/test_data/38__bor_20230401/1-Pos002/1-Pos002_GL14/test_analysis/track_data__test_analysis/moma.log
+>>> Starting MM in headless mode.
+Academic license - for non-commercial use only
+Warning: Gurobi version mismatch between Java 8.1.0 and C library 8.1.1
+Warning: Gurobi version mismatch between Java 8.1.0 and Jni 8.1.1
+
+######################################################
+Running first time analysis:
+input path: /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/test_data/38__bor_20230401/1-Pos002/1-Pos002_GL14/20230401_nat_iso_carbon_med3_1_MMStack__1-Pos002_GL14.tif
+analysis name: test_analysis
+######################################################
+
+Loading images ...
+Determined minTime: 1
+Determined maxTime: 5
+Determined minChannelIdx: 1
+Determined numChannels: 3
+VERSION: 0.9.4+daac83a9
+size before dupl 4
+size after dupl 4
+size before dupl 4
+size after dupl 4
+size before dupl 4
+size after dupl 4
+log4j:WARN No appenders could be found for logger (org.bushe.swing.event.EventService).
+log4j:WARN Please initialize the log4j system properly.
+log4j:WARN See http://logging.apache.org/log4j/1.2/faq.html#noconfig for more info.
+[ERROR] Cannot create plugin: class='org.scijava.plugins.scripting.jython.JythonScriptLanguage', name='Python', priority=0.0, enabled=true, pluginType=ScriptLanguage
+[ERROR] Cannot create plugin: class='org.scijava.plugins.scripting.renjin.RenjinScriptLanguage', name='R', priority=0.0, enabled=true, pluginType=ScriptLanguage
+[ERROR] Cannot create plugin: class='org.scijava.plugins.scripting.jruby.JRubyScriptLanguage', name='Ruby', priority=0.0, enabled=true, pluginType=ScriptLanguage
+[ERROR] Cannot create plugin: class='org.scijava.plugins.scripting.scala.ScalaScriptLanguage', name='Scala', priority=0.0, enabled=true, pluginType=ScriptLanguage
+Searching for Growthlanes... done!
+Generating Segmentation Hypotheses...
+[INFO] imagej-tensorflow version: ${git.closest.tag.name}.${git.commit.time}.${git.commit.id.abbrev}
+[INFO] tensorflow version: 1.12.0
+[INFO] The current library path is: LD_LIBRARY_PATH=/usr/local/cuda/lib64:/opt/gurobi811/linux64/lib:/usr/local/cuda/lib64:/opt/gurobi811/linux64/lib:/usr/local/cuda/lib64:/opt/gurobi811/linux64/lib:/opt/gurobi811/linux64/lib
+[INFO] Couldn't load tensorflow GPU support.
+[INFO] If the problem is CUDA related, make sure CUDA and cuDNN are in the LD_LIBRARY_PATH.
+[INFO] Using CPU version.
+[INFO] Loading TensorFlow model GenericNetwork_5b4d7498a4f74430fe6710f3fb1f4e39 from source file file:/home/micha/.moma/unet_models/model_20210715_5b27d7aa/current_tensorflow_model.zip
+[INFO] Caching TensorFlow models to /home/micha/Documents/01_work/git/MoMA/models
+2023-07-20 16:06:31.009563: I tensorflow/cc/saved_model/reader.cc:31] Reading SavedModel from: /home/micha/Documents/01_work/git/MoMA/models/GenericNetwork_5b4d7498a4f74430fe6710f3fb1f4e39
+2023-07-20 16:06:31.091927: I tensorflow/cc/saved_model/reader.cc:54] Reading meta graph with tags { serve }
+2023-07-20 16:06:31.175897: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2023-07-20 16:06:31.494751: I tensorflow/cc/saved_model/loader.cc:162] Restoring SavedModel bundle.
+2023-07-20 16:06:31.753201: I tensorflow/cc/saved_model/loader.cc:138] Running MainOp with key legacy_init_op on SavedModel bundle.
+2023-07-20 16:06:31.753229: I tensorflow/cc/saved_model/loader.cc:259] SavedModel load for tags { serve }; Status: success. Took 743677 microseconds.
+[INFO] Shape of input tensor: [-1, -1, -1, 1]
+[INFO] Shape of output tensor: [-1, -1, -1, 1]
+[INFO] Dataset type: 32-bit signed float, converting to FloatType.
+[INFO] Dataset dimensions: [32, 459, 5]
+[INFO] INPUT NODE: 
+[INFO] Mapping of tensor input: 
+[INFO]    datasetAxes:[X, Y, Z]
+[INFO]    nodeAxes:[(Z, -1), (Y, -1), (X, -1), (Channel, 1)]
+[INFO]    mapping:[2, 1, 0, 3]
+[INFO] OUTPUT NODE: 
+[INFO] Mapping of tensor output: 
+[INFO]    datasetAxes:[X, Y, Z]
+[INFO]    nodeAxes:[(Z, -1), (Y, -1), (X, -1), (Channel, 1)]
+[INFO]    mapping:[2, 1, 0, 3]
+[INFO] Complete input axes: [X, Y, Z, Channel]
+[INFO] Tiling actions: [TILE_WITH_PADDING, TILE_WITH_PADDING, TILE_WITHOUT_PADDING, NO_TILING]
+[INFO] Dividing image into 5 tile(s)..
+[INFO] Size of single image tile: [32, 464, 1, 1]
+[INFO] Final image tiling: [1, 1, 5, 1]
+[INFO] Network input size: [32, 464, 1, 1]
+[INFO] Processing tile 1..
+[INFO] Processing tile 2..
+[INFO] Processing tile 3..
+[INFO] Processing tile 4..
+[INFO] Processing tile 5..
+[INFO] Network output size: [32, 464, 1, 1]
+[INFO] POSTPROCESSING
+[INFO] Output axes: [X, Y, Z, Channel]
+[INFO] Merging tiles..
+[INFO] Crop to original size..
+[INFO] Output axes: [X, Y, Z, Channel]
+[INFO] Displaying result image..
+[INFO] img dim before wrapping into dataset: [32, 459, 5]
+[INFO] Plugin exit (took 2730 milliseconds)
+Frame: 1/5
+Frame: 2/5
+Frame: 3/5
+Frame: 4/5
+Frame: 5/5
+Timer result for generating components (IsTrackOnly: true, IsHeadless: true): 1.72
+ done!
+Generating Integer Linear Program...
+Academic license - for non-commercial use only
+Warning: Gurobi version mismatch between Java 8.1.0 and C library 8.1.1
+Warning: Gurobi version mismatch between Java 8.1.0 and Jni 8.1.1
+Academic license - for non-commercial use only
+Warning: Gurobi version mismatch between Java 8.1.0 and C library 8.1.1
+Warning: Gurobi version mismatch between Java 8.1.0 and Jni 8.1.1
+START: Filter assignments.
+FINISH: Filter assignments.
+Timer result for creating assignments (IsTrackOnly: true, IsHeadless: true): 0.173
+########### ILP STATISTICS START ###########
+Number of all components in component-trees (IsTrackOnly: true, IsHeadless: true): 44
+Number of components in ILP (IsTrackOnly: true, IsHeadless: true): 44
+Number of root components (IsTrackOnly: true, IsHeadless: true): 42
+Number of leaf components (IsTrackOnly: true, IsHeadless: true): 43
+Number of assignments (IsTrackOnly: true, IsHeadless: true): 279
+########### ILP STATISTICS END ###########
+ done!
+Running Integer Linear Program...
+ > > > > > Starting LP for GL# 0 < < < < < 
+Optimize a model with 167 rows, 279 columns and 2670 nonzeros
+
+Variable types: 0 continuous, 279 integer (279 binary)
+
+Coefficient statistics:
+
+  Matrix range     [1e+00, 1e+03]
+
+  Objective range  [1e-03, 1e+01]
+
+  Bounds range     [1e+00, 1e+00]
+
+  RHS range        [1e+00, 1e+03]
+
+Found heuristic solution: objective 0.0000000
+
+Presolve removed 51 rows and 82 columns
+
+Presolve time: 0.03s
+
+Presolved: 116 rows, 197 columns, 1679 nonzeros
+
+Variable types: 0 continuous, 197 integer (197 binary)
+
+0.0 0 0 0.0 -21.629345893859863 1 0
+
+
+Root relaxation: objective -1.189041e+01, 7 iterations, 0.00 seconds
+
+
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+
+
+*    0     0               0     -11.8904103  -11.89041  0.00%     -    0s
+
+
+
+Explored 0 nodes (7 simplex iterations) in 0.05 seconds
+
+Thread count was 12 (of 12 available processors)
+
+
+
+Solution count 2: -11.8904 0 
+
+
+
+Optimal solution found (tolerance 1.00e-04)
+
+Best objective -1.189041033387e+01, best bound -1.189041033387e+01, gap 0.0000%
+
+Timer result for optimization time (IsTrackOnly: true, IsHeadless: true): 0.051
+Status: OPTIMAL
+--------- Start: CheckSolutionContinuityConstraintForTimestepBaseOnOptimalHypotheses ---------
+--------- End: CheckSolutionContinuityConstraintForTimestepBaseOnOptimalHypotheses ---------
+--------- Start: CheckContinuityConstraintForAllOptimalAssignments ---------
+--------- End: CheckContinuityConstraintForAllOptimalAssignments ---------
+
+ done!
+Timer result for loading GL (IsTrackOnly: true, IsHeadless: true): 6.65
+Optimize a model with 446 rows, 279 columns and 2949 nonzeros
+
+Variable types: 0 continuous, 279 integer (279 binary)
+
+Coefficient statistics:
+
+  Matrix range     [1e+00, 1e+03]
+
+  Objective range  [1e-03, 1e+01]
+
+  Bounds range     [1e+00, 1e+00]
+
+  RHS range        [1e+00, 1e+03]
+
+
+
+Loaded MIP start with objective -11.8904
+
+
+
+Presolve removed 446 rows and 279 columns
+
+Presolve time: 0.00s
+
+Presolve: All rows and columns removed
+
+
+
+Explored 0 nodes (0 simplex iterations) in 0.01 seconds
+
+Thread count was 1 (of 12 available processors)
+
+
+
+Solution count 1: -11.8904 
+
+
+
+Optimal solution found (tolerance 1.00e-04)
+
+Best objective -1.189041033387e+01, best bound -1.189041033387e+01, gap 0.0000%
+
+START: Export component intensities.
+FINISH: Export component intensities.
+Exporting assignment costs...
+Execution time: 0.007
+
+Timer result for AssignmentActivitiesExporter (IsTrackOnly: true, IsHeadless: true): 0.01
+Timer result for HypothesisActivitiesExporter (IsTrackOnly: true, IsHeadless: true): 0.002
+Timer result for saving tracking data (IsTrackOnly: true, IsHeadless: true): 0.255
+Timer result for total runtime (IsTrackOnly: true, IsHeadless: true): 6.91
+2023-07-20 16:06:36,099 - INFO - FINISHED MOMA.
+2023-07-20 16:06:36,100 - INFO - BATCH RUN FINISHED.
+(base) micha@ierbert2:/home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script$ ^A

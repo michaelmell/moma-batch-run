@@ -100,7 +100,6 @@ This method caluclates the paths to the GL directories.
 #             if not config['pos'][pos]['gl'][gl]:
 #                 config['pos'][pos]['gl'][gl] = {}
 #             config['pos'][pos]['gl'][gl].update({'gl_path': gl_path})
-
 def for_each_gl_in_config(config: dict, fnc):
     positions = config['pos']
     for pos_ind in positions:
@@ -119,6 +118,10 @@ def build_arg_string(arg_dict):
     return ' '.join([f'-{key} {arg_dict[key]}' if arg_dict[key] is not None or '' else f'-{key}' for key in arg_dict])
 
 class AnalysisMetadata(object):
+    """
+    This class holds the analysis state of a given growthlane.
+    """
+
     def __init__(self, path: Path):
         # assert type(path) is Path, f'path is not of type Path'
         self.__path = path
@@ -161,6 +164,10 @@ class AnalysisMetadata(object):
             json.dump(self.value_dict, fp, indent=2, default=str)  # default=str is needed for the serialization of datetime object
 
 class GlFileManager(object):
+    """
+    This class abstracts the interaction with the directory strucuture of the analysis directory.
+    """
+
     def __init__(self, gl_directory_path: str, analysisName: str):
         self.gl_directory_path = Path(gl_directory_path)
         self.analysisName = analysisName
@@ -366,8 +373,16 @@ def initialize_logger(log_file):
     sys.stdout = StreamToLogger(logger, logging.INFO)
     sys.stderr = StreamToLogger(logger, logging.ERROR)
 
+class MomaSlurmRunner(object):
+    """
+    This class submits 
+    """
+    
 
 class MomaRunner(object):
+    """
+    This class launches the MoMA process and handles the interuption of it.
+    """
     _moma_process: subprocess.Popen = None
     _return_code: int = 0
     
@@ -492,7 +507,12 @@ def parse_cmd_arguments():
 def __main__():
     cmd_args = parse_cmd_arguments()
 
-    moma_runner = MomaRunner()
+    if (cmd_args.track or cmd_args.export) and cmd_args.slurm:
+        # moma_runner = MomaSlurmRunner
+        pass
+    else:
+        moma_runner = MomaRunner()
+        
 
     abortObj = AbortObject()
     abortObj.abortSignaled = False
