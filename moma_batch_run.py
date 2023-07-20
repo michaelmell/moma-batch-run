@@ -18,7 +18,7 @@ import yaml
 from yaml.loader import SafeLoader
 
 
-batch_script_version = "0.3.1"
+batch_script_version = "0.4.0-dev"
 program_name='moma_batch_run'
 
 def print_batch_version_to_log():
@@ -582,7 +582,7 @@ def __main__():
             if not gl_file_manager.get_gl_is_curated() or cmd_args.force:
                 gl_file_manager.copy_track_data_to_backup_if_it_exists(backup_postfix)
                 gl_file_manager.move_export_data_to_backup_if_it_exists(backup_postfix)
-                current_args_dict = {'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
+                current_args_dict = {'multithreaded':None, 'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
                 moma_runner.run(getLogger(), gl_file_manager, current_args_dict)
                 gl_file_manager.set_gl_is_curated()
             else:
