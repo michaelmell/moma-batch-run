@@ -390,7 +390,7 @@ class MomaSlurmRunner(object):
         if not slurm_header_file:
             self.slurm_header_file = self._default_slurm_header_path
         else:
-            with open(slurm_header_file) as infile:
+            with open(slurm_header_file) as infile: # test if file exists; if not raise IOError
                 pass
             self.slurm_header_file = slurm_header_file
 
@@ -409,8 +409,19 @@ class MomaSlurmRunner(object):
 
     def build_slurm_bash_script() -> str:
         raise NotImplementedError()
-    
-    def run():
+
+    def _get_moma_run_command(self, current_args_dict : dict) -> str:
+        args_string = build_arg_string(current_args_dict)
+        args_string += f' -i {gl_file_manager.get_tiff_path()}'
+        moma_command = f'moma {args_string}'
+        return moma_command
+
+    def run(self, logger, gl_file_manager: GlFileManager, current_args_dict : dict):
+        assert logger is not None
+        assert gl_file_manager is not None
+        assert current_args_dict is not None
+        
+        self.current_args_dict = current_args_dict
         raise NotImplemented()
         if not self._default_slurm_header_path.exists():
             self.write_slurm_header_to_home_if_missing()
@@ -544,12 +555,12 @@ def parse_cmd_arguments():
 def __main__():
     cmd_args = parse_cmd_arguments()
 
-    if (cmd_args.track or cmd_args.export) and cmd_args.slurm:
-        moma_runner = MomaSlurmRunner(cmd_args.slurm)
-        pass
-    else:
-        moma_runner = MomaRunner()
-        
+    # if (cmd_args.track or cmd_args.export) and cmd_args.slurm:
+    #     moma_runner = MomaSlurmRunner(cmd_args.slurm)
+    #     pass
+    # else:
+    #     moma_runner = MomaRunner()
+    moma_runner = MomaRunner()        
 
     abortObj = AbortObject()
     abortObj.abortSignaled = False
