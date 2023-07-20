@@ -135,6 +135,15 @@
             "args" : ["-f","-export","test_analysis_v0.1.0.yaml"]
         },
         {
+            "name": "force-export-v0.2.0",
+            "type": "python",
+            "request": "launch",
+            "program": "moma_batch_run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args" : ["-f","-export","test_analysis_v0.2.0.yaml"]
+        },
+        {
             "name": "delete",
             "type": "python",
             "request": "launch",
