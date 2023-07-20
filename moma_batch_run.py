@@ -380,15 +380,19 @@ class MomaSlurmRunner(object):
     - TODO: output: write to 
     """
 
-    _slurm_header = None # store the the slurm header that contains the settings for the slurm job
+    _default_slurm_header_path = Path.home() / ".moma" / "batch_run_slurm_header.txt"
 
-    def __init__(self, slurm_header_file=None): # here I can pass the slurm header later on;
+    def __init__(self, slurm_header_file: Path = None): # here I can pass the slurm header later on;
+        """
+        slurm_header_file: possible values:
+            - [PATH]: User specified a path to a slurm header file.
+        """
         if not slurm_header_file:
-            self._slurm_header = self.get_default_slurm_header()
+            self.slurm_header_file = self._default_slurm_header_path
         else:
-            # TODO: Read slurm header from file and store it in _slurm_header
-            pass
-        pass
+            with open(slurm_header_file) as infile:
+                pass
+            self.slurm_header_file = slurm_header_file
 
     def get_default_slurm_header(self) -> str:
         return \
@@ -398,11 +402,19 @@ class MomaSlurmRunner(object):
 #SBATCH --cpus-per-task=4
 #SBATCH --qos=1day
 """
-        raise NotImplementedError()
+
+    def write_slurm_header_to_home_if_missing(self):
+        with open(self._default_slurm_header_path, "w") as f:
+            f.write(self.get_default_slurm_header())
 
     def build_slurm_bash_script() -> str:
         raise NotImplementedError()
-        
+    
+    def run():
+        raise NotImplemented()
+        if not self._default_slurm_header_path.exists():
+            self.write_slurm_header_to_home_if_missing()
+
 
 class MomaRunner(object):
     """
@@ -533,7 +545,7 @@ def __main__():
     cmd_args = parse_cmd_arguments()
 
     if (cmd_args.track or cmd_args.export) and cmd_args.slurm:
-        moma_runner = MomaSlurmRunner()
+        moma_runner = MomaSlurmRunner(cmd_args.slurm)
         pass
     else:
         moma_runner = MomaRunner()

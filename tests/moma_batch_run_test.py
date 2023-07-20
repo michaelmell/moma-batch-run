@@ -1,5 +1,6 @@
 # import unittest
 import logging
+from pathlib import Path
 import sys
 import pytest
 
@@ -9,53 +10,19 @@ def setup_function(function):
     print("setting up failed for: ", function)
 
 class TestMomaSlurmRunner():
-    def test_init(self, capsys):
+    def test__init_without_path_argument__returns__path_to_home_directory(self):
+        expected = Path.home() / ".moma" / "batch_run_slurm_header.txt"
         sut = MomaSlurmRunner()
-        with capsys.disabled():
-            print("BLA1!")
-            print(sut.get_default_slurm_header())
-        print("BLA2!")
-        
-        assert True
+        assert sut.slurm_header_file == expected
 
-# def test_func1(capsys):
-#     with capsys.disabled():
-#         print("WTF1!!!")
-#     assert True
+    def test__init_with_path__returns__path(self):
+        expected = Path("./test_data/temporary_test_batch_run_slurm_header.txt")
+        expected.touch()
+        sut = MomaSlurmRunner(expected)
+        expected.unlink()
+        assert sut.slurm_header_file == expected
 
-
-# def test_func2():
-#     print("WTF2!!!")
-#     assert False
-
-# def f():
-#     raise SystemExit(1)
-
-# class TestWithPytest():
-#     def test_one(self):
-#         x = "this"l
-#         print("HELLO WORLD")
-#         assert False
-#         # assert "h" in x
-
-#     def test_two(self):
-#         x = "this"
-#         assert "h" in x
-
-    # def test_mytest():
-    #     with pytest.raises(SystemExit):
-    #         f()
-
-# class TestMomaSlurmRunner(unittest.TestCase):
-#     def test_init(self):
-#         # log = logging.getLogger( "SomeTest.testSomething" )
-#         # log.debug( "this= %r", self.this )
-#         sut = MomaSlurmRunner()
-#         # print(sut.get_default_slurm_header())
-#         print("hello world")
-#         # assert False
-
-# # if __name__ == "__main__":
-# #     logging.basicConfig( stream=sys.stderr )
-# #     logging.getLogger( "SomeTest.testSomething" ).setLevel( logging.DEBUG )
-# #     unittest.main()
+    def test__init_with_non_existent_file__raises_argument_error(self):
+        expected = Path("./test_data/non_existent_batch_run_slurm_header.txt")
+        with pytest.raises(IOError):
+            sut = MomaSlurmRunner(expected)
