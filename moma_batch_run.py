@@ -375,9 +375,34 @@ def initialize_logger(log_file):
 
 class MomaSlurmRunner(object):
     """
-    This class submits 
+    This class submits the moma job to slurm. It does this by:
+    - TODO: using the analysis-name for --job-name
+    - TODO: output: write to 
     """
-    
+
+    _slurm_header = None # store the the slurm header that contains the settings for the slurm job
+
+    def __init__(self, slurm_header_file=None): # here I can pass the slurm header later on;
+        if not slurm_header_file:
+            self._slurm_header = self.get_default_slurm_header()
+        else:
+            # TODO: Read slurm header from file and store it in _slurm_header
+            pass
+        pass
+
+    def get_default_slurm_header(self) -> str:
+        return \
+"""
+#SBATCH --mem=16G
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=4
+#SBATCH --qos=1day
+"""
+        raise NotImplementedError()
+
+    def build_slurm_bash_script() -> str:
+        raise NotImplementedError()
+        
 
 class MomaRunner(object):
     """
@@ -508,7 +533,7 @@ def __main__():
     cmd_args = parse_cmd_arguments()
 
     if (cmd_args.track or cmd_args.export) and cmd_args.slurm:
-        # moma_runner = MomaSlurmRunner
+        moma_runner = MomaSlurmRunner()
         pass
     else:
         moma_runner = MomaRunner()
