@@ -45,11 +45,11 @@ class TestSlurmRunner():
                 'headless': None,
                 'trackonly': None}
     analysisName = 'test_analysis'
-    path_to_gl = Path('/home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/test_data/38__bor_20230401/1-Pos000/1-Pos000_GL9')
+    path_to_gl = Path('test_data/gl_test_folder/1-Pos000_GL9')
     gl_file_manager = GlFileManager(path_to_gl, analysisName)
 
-    expected_moma_command = "moma -p /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties -analysis test_analysis -headless -trackonly -i /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/test_data/38__bor_20230401/1-Pos000/1-Pos000_GL9/20230401_nat_iso_carbon_med3_1_MMStack__1-Pos000_GL9.tif"
-    expected_bash_script = "#SBATCH --mem=16G\n#SBATCH --ntasks=1\n#SBATCH --cpus-per-task=4\n#SBATCH --qos=1day\n\nmoma -p /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties -analysis test_analysis -headless -trackonly -i /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/test_data/38__bor_20230401/1-Pos000/1-Pos000_GL9/20230401_nat_iso_carbon_med3_1_MMStack__1-Pos000_GL9.tif\n"
+    expected_moma_command = "moma -p /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties -analysis test_analysis -headless -trackonly -i test_data/gl_test_folder/1-Pos000_GL9/20230401_nat_iso_carbon_med3_1_MMStack__1-Pos000_GL9.tif"
+    expected_bash_script = "#SBATCH --mem=16G\n#SBATCH --ntasks=1\n#SBATCH --cpus-per-task=4\n#SBATCH --qos=1day\n\nmoma -p /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties -analysis test_analysis -headless -trackonly -i test_data/gl_test_folder/1-Pos000_GL9/20230401_nat_iso_carbon_med3_1_MMStack__1-Pos000_GL9.tif\n"
 
     def test__build_moma_run_command_returns_correct_command(self):
         sut = MomaSlurmRunner(_default_header_header)
@@ -60,11 +60,10 @@ class TestSlurmRunner():
         actual = sut.build_slurm_bash_file_string(self.gl_file_manager, self.arg_dict)
         assert self.expected_bash_script == actual
 
-    # def test__write_slurm_bash_script_to_analysis_folder(self):
-    #     sut = MomaSlurmRunner(_default_header_header)
-    #     actual = sut.write_slurm_bash_script_to_analysis_folder(self.gl_file_manager, self.arg_dict)
+    def test__write_slurm_bash_script_to_analysis_folder(self):
+        sut = MomaSlurmRunner(_default_header_header)
+        actual = sut.write_slurm_bash_script_to_analysis_folder(self.gl_file_manager, self.arg_dict)
         
-
     def test__bla(self):
         logger = [] # set logger to dummy variable
 
