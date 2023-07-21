@@ -381,9 +381,6 @@ class MomaSlurmRunner(object):
     def __init__(self, slurm_header: str):
         self.slurm_header = slurm_header
 
-    # def build_slurm_bash_script() -> str:
-    #     raise NotImplementedError()
-
     def build_moma_run_command(self, gl_file_manager: GlFileManager, current_args_dict : dict) -> str:
         args_string = build_arg_string(current_args_dict)
         args_string += f' -i {gl_file_manager.get_tiff_path()}'
@@ -397,11 +394,11 @@ class MomaSlurmRunner(object):
         return bash_file_string
 
     def get_slurm_script_path(self, gl_file_manager: GlFileManager):
-        return Path(gl_file_manager.get_gl_analysis_path() / self._script_name)
+        return Path(gl_file_manager.get_gl_track_data_path() / self._script_name)
     
     def write_slurm_bash_script_to_analysis_folder(self, gl_file_manager: GlFileManager, current_args_dict : dict):
-        if not gl_file_manager.get_gl_analysis_path().exists():
-            raise FileNotFoundError(gl_file_manager.get_gl_analysis_path())
+        if not gl_file_manager.get_gl_track_data_path().exists():
+            raise FileNotFoundError(gl_file_manager.get_gl_track_data_path())
         script_path = self.get_slurm_script_path(gl_file_manager)
         with open(script_path,'w') as f:
             f.write(self.build_slurm_bash_file_string(gl_file_manager, current_args_dict))
