@@ -373,7 +373,49 @@ def initialize_logger(log_file):
     sys.stdout = StreamToLogger(logger, logging.INFO)
     sys.stderr = StreamToLogger(logger, logging.ERROR)
 
+    
+
 class MomaSlurmRunner(object):
+    _script_name = ""
+
+    def __init__(self, slurm_header: str):
+        self.slurm_header = slurm_header
+
+    def build_slurm_bash_script() -> str:
+        raise NotImplementedError()
+
+    def build_moma_run_command(self, gl_file_manager: GlFileManager, current_args_dict : dict) -> str:
+        args_string = build_arg_string(current_args_dict)
+        args_string += f' -i {gl_file_manager.get_tiff_path()}'
+        moma_command = f'moma {args_string}'
+        return moma_command
+
+    def build_slurm_bash_file_string(self, gl_file_manager: GlFileManager, current_args_dict : dict):
+        moma_command = self.build_moma_run_command(gl_file_manager, current_args_dict)
+
+        bash_file_string = f'{self.slurm_header}\n{moma_command}\n'
+        return bash_file_string
+
+    def get_slurm_script_path(self, gl_file_manager: GlFileManager):
+        return Path(gl_file_manager.get_gl_analysis_path() / self._script_name)
+    
+    def write_slurm_bash_script_to_analysis_folder(self, gl_file_manager: GlFileManager, current_args_dict : dict):
+        if not gl_file_manager.get_gl_analysis_path().exists():
+            raise FileNotFoundError(gl_file_manager.get_gl_analysis_path())
+        with open(self.get_slurm_script_path(gl_file_manager),'w') as f:
+            f.write(self.build_slurm_bash_script(gl_file_manager, current_args_dict))
+        pass
+
+    def run(self, logger, gl_file_manager: GlFileManager, current_args_dict : dict):
+        assert logger is not None
+        assert gl_file_manager is not None
+        assert current_args_dict is not None
+        
+
+        # logger.info("RUN MOMA: " + moma_command)
+        # raise NotImplementedError()
+
+class SlurmHeaderProvider(object):
     """
     This class submits the moma job to slurm. It does this by:
     - TODO: using the analysis-name for --job-name
@@ -381,6 +423,11 @@ class MomaSlurmRunner(object):
     """
 
     _default_slurm_header_path = Path.home() / ".moma" / "batch_run_slurm_header.txt"
+    _slurm_header = """#SBATCH --mem=16G
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=4
+#SBATCH --qos=1day
+"""
 
     def __init__(self, slurm_header_file: Path = None): # here I can pass the slurm header later on;
         """
@@ -394,38 +441,13 @@ class MomaSlurmRunner(object):
                 pass
             self.slurm_header_file = slurm_header_file
 
-    def get_default_slurm_header(self) -> str:
-        return \
-"""
-#SBATCH --mem=16G
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
-#SBATCH --qos=1day
-"""
-
     def write_slurm_header_to_home_if_missing(self):
         with open(self._default_slurm_header_path, "w") as f:
             f.write(self.get_default_slurm_header())
 
-    def build_slurm_bash_script() -> str:
-        raise NotImplementedError()
-
-    def _get_moma_run_command(self, current_args_dict : dict) -> str:
-        args_string = build_arg_string(current_args_dict)
-        args_string += f' -i {gl_file_manager.get_tiff_path()}'
-        moma_command = f'moma {args_string}'
-        return moma_command
-
-    def run(self, logger, gl_file_manager: GlFileManager, current_args_dict : dict):
-        assert logger is not None
-        assert gl_file_manager is not None
-        assert current_args_dict is not None
-        
-        self.current_args_dict = current_args_dict
-        raise NotImplemented()
-        if not self._default_slurm_header_path.exists():
-            self.write_slurm_header_to_home_if_missing()
-
+    @property
+    def slurm_header(self):
+        return self._slurm_header
 
 class MomaRunner(object):
     """
