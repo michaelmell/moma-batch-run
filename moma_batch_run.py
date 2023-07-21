@@ -164,6 +164,8 @@ class AnalysisMetadata(object):
             json.dump(self.value_dict, fp, indent=2, default=str)  # default=str is needed for the serialization of datetime object
 
 class GlFileManager(object):
+    _script_name = "moma_slurm_script.sh"
+
     """
     This class abstracts the interaction with the directory strucuture of the analysis directory.
     """
@@ -171,6 +173,9 @@ class GlFileManager(object):
     def __init__(self, gl_directory_path: str, analysisName: str):
         self.gl_directory_path = Path(gl_directory_path)
         self.analysisName = analysisName
+
+    def get_slurm_script_path(self):
+        return Path(self.get_gl_track_data_path() / self._script_name)
 
     def copy_track_data_to_backup_if_it_exists(self, backup_dir_postfix):
         if self.get_gl_track_data_path().exists():
@@ -376,8 +381,6 @@ def initialize_logger(log_file):
     
 
 class MomaSlurmRunner(object):
-    _script_name = "moma_slurm_script.sh"
-
     def __init__(self, slurm_header: str):
         self.slurm_header = slurm_header
 
@@ -393,13 +396,10 @@ class MomaSlurmRunner(object):
         bash_file_string = f'{self.slurm_header}\n{moma_command}\n'
         return bash_file_string
 
-    def get_slurm_script_path(self, gl_file_manager: GlFileManager):
-        return Path(gl_file_manager.get_gl_track_data_path() / self._script_name)
-    
     def write_slurm_bash_script_to_analysis_folder(self, gl_file_manager: GlFileManager, current_args_dict : dict):
         if not gl_file_manager.get_gl_track_data_path().exists():
             raise FileNotFoundError(gl_file_manager.get_gl_track_data_path())
-        script_path = self.get_slurm_script_path(gl_file_manager)
+        script_path = gl_file_manager.get_slurm_script_path()
         with open(script_path,'w') as f:
             f.write(self.build_slurm_bash_file_string(gl_file_manager, current_args_dict))
         pass

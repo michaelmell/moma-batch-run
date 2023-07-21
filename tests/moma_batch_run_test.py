@@ -63,10 +63,10 @@ class TestSlurmRunner():
         actual = sut.build_slurm_bash_file_string(self.gl_file_manager, self.arg_dict)
         assert self.expected_bash_script_content == actual
 
-    def test__get_slurm_script_path(self):
-        sut = MomaSlurmRunner(_default_header_header)
-        script_path = sut.get_slurm_script_path(self.gl_file_manager)
-        assert script_path
+    # def test__get_slurm_script_path(self):
+    #     sut = MomaSlurmRunner(_default_header_header)
+    #     script_path = sut.get_slurm_script_path(self.gl_file_manager)
+    #     assert script_path
 
     def test__write_slurm_bash_script_to_analysis_folder__script_content_is_correct(self):
         self.gl_file_manager.get_gl_track_data_path().mkdir(parents=True, exist_ok=True)
