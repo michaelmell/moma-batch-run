@@ -591,7 +591,7 @@ def parse_cmd_arguments():
             cmd_args.yaml_config_file = Path(args_dict[arg_name]) # get YAML config file path from the arguments it as value
     return cmd_args
 
-def get_moma_runner(cmd_args: dict, current_args_dict: dict, yaml_config_file_path: Path):
+def get_moma_runner(cmd_args: dict, yaml_config_file_path: Path):
     with open(yaml_config_file_path) as f:
         config = yaml.load(f, Loader=SafeLoader)
         use_slurm = config['slurm']
@@ -679,7 +679,7 @@ def __main__():
         args_dict = gl['moma_arg']
         current_args_dict = args_dict.copy()
         
-        moma_runner = get_moma_runner(cmd_args, current_args_dict, yaml_config_file_path)
+        moma_runner = get_moma_runner(cmd_args, yaml_config_file_path)
 
         if cmd_args.track:
             if not gl_file_manager.get_gl_is_tracked() or cmd_args.force:
