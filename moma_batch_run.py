@@ -419,6 +419,11 @@ class MomaSlurmRunner(object):
         self.write_slurm_bash_script_to_analysis_folder(gl_file_manager, current_args_dict)
         self.set_script_permissions(gl_file_manager.get_slurm_script_path())
 
+        logger.info("SUBMITTING SLURM JOB:")
+        logger.info("MOMA COMMAND: " + self.build_moma_run_command(gl_file_manager, current_args_dict))
+        logger.info("MOMA LOG FILE: " + str(gl_file_manager.get_gl_analysis_log_file_path()))
+        logger.info("LOG FILE: " + str(gl_file_manager.get_gl_analysis_log_file_path()))
+
         self._slurm_process = subprocess.Popen(['sbatch'] + [str(gl_file_manager.get_slurm_script_path())],
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
