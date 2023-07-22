@@ -586,6 +586,16 @@ def parse_cmd_arguments():
             cmd_args.yaml_config_file = Path(args_dict[arg_name]) # get YAML config file path from the arguments it as value
     return cmd_args
 
+def get_moma_runner(cmd_args: dict, current_args_dict: dict, yaml_config_file_path: Path):
+    with open(yaml_config_file_path) as f:
+        config = yaml.load(f, Loader=SafeLoader)
+        use_slurm = config['slurm']
+    
+    if (cmd_args.track or cmd_args.export) and use_slurm:
+        return MomaSlurmRunner(SlurmHeaderProvider(use_slurm).slurm_header)
+    else:
+        return MomaRunner()
+
 def __main__():
     cmd_args = parse_cmd_arguments()
 
@@ -657,16 +667,6 @@ def __main__():
     backup_postfix = "__BKP_" + time_stamp_of_run
     getLogger().info(f"Any backups created during this run are appended with postfix: {backup_postfix}")
     
-    def get_moma_runner(cmd_args: dict, current_args_dict: dict, yaml_config_file_path: Path):
-        with open(yaml_config_file_path) as f:
-            config = yaml.load(f, Loader=SafeLoader)
-            use_slurm = config['slurm']
-        
-        if (cmd_args.track or cmd_args.export) and use_slurm:
-            return MomaSlurmRunner(SlurmHeaderProvider(use_slurm).slurm_header)
-        else:
-            return MomaRunner()
-
     for gl in gl_dicts:
         gl_directory_path = gl['gl_path']
         gl_file_manager = gl['gl_file_manager']
