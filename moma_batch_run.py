@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 import os
+import stat
 from distutils.dir_util import copy_tree
 import shutil
 import signal
@@ -230,6 +231,9 @@ class GlFileManager(object):
     def get_gl_track_data_path(self) -> Path:
         return Path(os.path.join(self.get_gl_analysis_path(), 'track_data__' + self.analysisName))
 
+    def make_gl_track_data_path(self):
+        self.get_gl_track_data_path().mkdir(parents=True, exist_ok=True)
+
     def get_gl_analysis_log_file_path(self) -> Path:
         return self.get_gl_track_data_path().joinpath('moma.log')
 
@@ -398,20 +402,29 @@ class MomaSlurmRunner(object):
 
     def write_slurm_bash_script_to_analysis_folder(self, gl_file_manager: GlFileManager, current_args_dict : dict):
         if not gl_file_manager.get_gl_track_data_path().exists():
-            raise FileNotFoundError(gl_file_manager.get_gl_track_data_path())
+            gl_file_manager.make_gl_track_data_path()
         script_path = gl_file_manager.get_slurm_script_path()
         with open(script_path,'w') as f:
             f.write(self.build_slurm_bash_file_string(gl_file_manager, current_args_dict))
-        pass
+
+    def set_script_permissions(self, script_path: Path):
+        st = os.stat(script_path)
+        os.chmod(script_path, st.st_mode | stat.S_IEXEC)
 
     def run(self, logger, gl_file_manager: GlFileManager, current_args_dict : dict):
         assert logger is not None
         assert gl_file_manager is not None
         assert current_args_dict is not None
-        
 
-        # logger.info("RUN MOMA: " + moma_command)
-        # raise NotImplementedError()
+        self.write_slurm_bash_script_to_analysis_folder(gl_file_manager, current_args_dict)
+        self.set_script_permissions(gl_file_manager.get_slurm_script_path())
+
+        self._slurm_process = subprocess.Popen(['sbatch'] + [str(gl_file_manager.get_slurm_script_path())],
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.STDOUT,
+                                        universal_newlines=True
+                                        )
+        self._slurm_process.wait()
 
 class SlurmHeaderProvider(object):
     """
@@ -421,7 +434,8 @@ class SlurmHeaderProvider(object):
     """
 
     _default_slurm_header_path = Path.home() / ".moma" / "batch_run_slurm_header.txt"
-    _slurm_header = """#SBATCH --mem=16G
+    _slurm_header = """#!/bin/bash
+#SBATCH --mem=16G
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --qos=1day
@@ -501,7 +515,7 @@ class MomaRunner(object):
     def return_code(self):
         return self._return_code
 
-def killSignalHandler(signum, frame, abortObject, moma_runner: MomaRunner):
+def killSignalHandler(signum, frame, abortObject):
     abortObject.abortSignaled = True
     getLogger().info("Ctrl-c was pressed. Stopping execution.")
     getLogger().info("USER REQUESTED ABORT. STOPPING EXECUTION.")
@@ -575,22 +589,15 @@ def parse_cmd_arguments():
 def __main__():
     cmd_args = parse_cmd_arguments()
 
-    # if (cmd_args.track or cmd_args.export) and cmd_args.slurm:
-    #     moma_runner = MomaSlurmRunner(cmd_args.slurm)
-    #     pass
-    # else:
-    #     moma_runner = MomaRunner()
-    moma_runner = MomaRunner()        
-
     abortObj = AbortObject()
     abortObj.abortSignaled = False
-    signal.signal(signal.SIGINT, lambda signum, frame: killSignalHandler(signum, frame, abortObj, moma_runner))
+    signal.signal(signal.SIGINT, lambda signum, frame: killSignalHandler(signum, frame, abortObj))
     
     ### Get time stamp of current run; used e.g. in the name of backup files ###
     time_stamp_of_run = datetime.now().strftime('%Y%m%d-%H%M%S')
 
     yaml_config_file_path = Path(cmd_args.yaml_config_file)
-    
+
     if not yaml_config_file_path.exists():
         getLogger().error("Check argument 'yaml_config_file'; file not found at: {yaml_config_file_path}")
         exit(-1)
@@ -650,6 +657,16 @@ def __main__():
     backup_postfix = "__BKP_" + time_stamp_of_run
     getLogger().info(f"Any backups created during this run are appended with postfix: {backup_postfix}")
     
+    def get_moma_runner(cmd_args: dict, current_args_dict: dict, yaml_config_file_path: Path):
+        with open(yaml_config_file_path) as f:
+            config = yaml.load(f, Loader=SafeLoader)
+            use_slurm = config['slurm']
+        
+        if (cmd_args.track or cmd_args.export) and use_slurm:
+            return MomaSlurmRunner(SlurmHeaderProvider(use_slurm).slurm_header)
+        else:
+            return MomaRunner()
+
     for gl in gl_dicts:
         gl_directory_path = gl['gl_path']
         gl_file_manager = gl['gl_file_manager']
@@ -657,6 +674,8 @@ def __main__():
         args_dict = gl['moma_arg']
         current_args_dict = args_dict.copy()
         
+        moma_runner = get_moma_runner(cmd_args, current_args_dict, yaml_config_file_path)
+
         if cmd_args.track:
             if not gl_file_manager.get_gl_is_tracked() or cmd_args.force:
                 gl_file_manager.move_track_data_to_backup_if_it_exists(backup_postfix)
