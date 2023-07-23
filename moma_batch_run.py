@@ -391,7 +391,7 @@ class MomaSlurmRunner(object):
     def build_moma_run_command(self, gl_file_manager: GlFileManager, current_args_dict : dict) -> str:
         args_string = build_arg_string(current_args_dict)
         args_string += f' -i {gl_file_manager.get_tiff_path()}'
-        moma_command = f'moma {args_string}'
+        moma_command = f'xvfb-run moma {args_string}'
         return moma_command
 
     def build_slurm_bash_file_string(self, gl_file_manager: GlFileManager, current_args_dict : dict):
