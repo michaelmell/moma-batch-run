@@ -14,7 +14,7 @@ expected_header = """#!/bin/bash
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --qos=1day
-#SBATCH --time=6h
+#SBATCH --time=1:00:00
 """
 
 
