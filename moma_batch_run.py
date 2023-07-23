@@ -444,6 +444,7 @@ class SlurmHeaderProvider(object):
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --qos=1day
+#SBATCH --time=6h
 """
 
     def __init__(self, slurm_header_file: Path = None): # here I can pass the slurm header later on;
