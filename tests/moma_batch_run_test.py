@@ -48,8 +48,8 @@ class TestSlurmRunner():
     path_to_gl = Path('test_data/gl_test_folder/1-Pos000_GL9')
     gl_file_manager = GlFileManager(path_to_gl, analysisName)
 
-    expected_moma_command = f"moma -p /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties -analysis test_analysis -headless -trackonly -i {str(path_to_gl)}/20230401_nat_iso_carbon_med3_1_MMStack__1-Pos000_GL9.tif"
-    expected_bash_script_content = f"#!/bin/bash\n#SBATCH --mem=16G\n#SBATCH --ntasks=1\n#SBATCH --cpus-per-task=4\n#SBATCH --qos=1day\n\nmoma -p /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties -analysis test_analysis -headless -trackonly -i {str(path_to_gl)}/20230401_nat_iso_carbon_med3_1_MMStack__1-Pos000_GL9.tif\n"
+    expected_moma_command = f"xvfb-run moma -p /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties -analysis test_analysis -headless -trackonly -i {str(path_to_gl)}/20230401_nat_iso_carbon_med3_1_MMStack__1-Pos000_GL9.tif"
+    expected_bash_script_content = f"#!/bin/bash\n#SBATCH --mem=16G\n#SBATCH --ntasks=1\n#SBATCH --cpus-per-task=4\n#SBATCH --qos=1day\n\n{expected_moma_command}\n"
     expected_slurm_script_name = "moma_slurm_script.sh"
     expected_analysis_path = Path(path_to_gl / analysisName)
     expected_analysis_track_data_path = Path(expected_analysis_path / ("track_data__" + analysisName))
