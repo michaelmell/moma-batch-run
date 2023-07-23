@@ -237,6 +237,9 @@ class GlFileManager(object):
     def get_gl_analysis_log_file_path(self) -> Path:
         return self.get_gl_track_data_path().joinpath('moma.log')
 
+    def get_gl_analysis_error_log_file_path(self) -> Path:
+        return self.get_gl_track_data_path().joinpath('moma_error.log')
+
     def get_gl_is_curated(self) -> bool:
         return self.__get_analysis_metadata().curated
 
@@ -394,29 +397,39 @@ class MomaSlurmRunner(object):
         moma_command = f'xvfb-run moma {args_string}'
         return moma_command
 
-    def build_slurm_bash_file_string(self, gl_file_manager: GlFileManager, current_args_dict : dict):
+    def build_slurm_bash_file_string(self, gl_file_manager: GlFileManager, current_args_dict : dict, gl: dict):
         moma_command = self.build_moma_run_command(gl_file_manager, current_args_dict)
-
-        bash_file_string = f'{self.slurm_header}\n{moma_command}\n'
+        slurm_job_id = f"#SBATCH --job-name={current_args_dict['analysis']}__{gl['pos_ind']}_GL{gl['gl_ind']}"
+        slurm_stdout_output = f"#SBATCH --output={gl_file_manager.get_gl_analysis_log_file_path()}"
+        slurm_stderr_output = f"#SBATCH --error={gl_file_manager.get_gl_analysis_error_log_file_path()}"
+        cuda_module_loading = "module load CUDA/10.0.130"
+        bash_file_string = f'{self.slurm_header}\
+\n{slurm_job_id}\
+\n{slurm_stdout_output}\
+\n{slurm_stderr_output}\
+\n\
+\n{cuda_module_loading}\
+\n\
+\n{moma_command}\n'
         return bash_file_string
 
-    def write_slurm_bash_script_to_analysis_folder(self, gl_file_manager: GlFileManager, current_args_dict : dict):
+    def write_slurm_bash_script_to_analysis_folder(self, gl_file_manager: GlFileManager, current_args_dict : dict, gl: dict):
         if not gl_file_manager.get_gl_track_data_path().exists():
             gl_file_manager.make_gl_track_data_path()
         script_path = gl_file_manager.get_slurm_script_path()
         with open(script_path,'w') as f:
-            f.write(self.build_slurm_bash_file_string(gl_file_manager, current_args_dict))
+            f.write(self.build_slurm_bash_file_string(gl_file_manager, current_args_dict, gl))
 
     def set_script_permissions(self, script_path: Path):
         st = os.stat(script_path)
         os.chmod(script_path, st.st_mode | stat.S_IEXEC)
 
-    def run(self, logger, gl_file_manager: GlFileManager, current_args_dict : dict):
+    def run(self, logger, gl_file_manager: GlFileManager, current_args_dict : dict, gl: dict):
         assert logger is not None
         assert gl_file_manager is not None
         assert current_args_dict is not None
 
-        self.write_slurm_bash_script_to_analysis_folder(gl_file_manager, current_args_dict)
+        self.write_slurm_bash_script_to_analysis_folder(gl_file_manager, current_args_dict, gl)
         self.set_script_permissions(gl_file_manager.get_slurm_script_path())
 
         logger.info("SUBMITTING SLURM JOB:")
@@ -485,7 +498,7 @@ class MomaRunner(object):
             # self._moma_process.send_signal(signal.SIGINT)
             # self._moma_process.send_signal(signal.SIGKILL)
 
-    def run(self, logger, gl_file_manager: GlFileManager, current_args_dict):
+    def run(self, logger, gl_file_manager: GlFileManager, current_args_dict, gl: dict):
         args_string = build_arg_string(current_args_dict)
         args_string += f' -i {gl_file_manager.get_tiff_path()}'
         moma_command = f'moma {args_string}'
@@ -687,7 +700,7 @@ def __main__():
                 gl_file_manager.move_track_data_to_backup_if_it_exists(backup_postfix)
                 gl_file_manager.move_export_data_to_backup_if_it_exists(backup_postfix)
                 current_args_dict.update({'headless':None, 'trackonly':None})
-                moma_runner.run(getLogger(), gl_file_manager, current_args_dict)
+                moma_runner.run(getLogger(), gl_file_manager, current_args_dict, gl)
                 gl_file_manager.set_gl_is_tracked()
             else:
                 getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already tracked for analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_track_data_path()}")
