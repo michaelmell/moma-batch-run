@@ -606,7 +606,7 @@ def parse_cmd_arguments():
     parser.add_argument("-f", "--force", action='store_true',
                     help="force the operation")
     parser.add_argument("-ff", "--fforce", action='store_true',
-                    help="force operation when deleting data; e.g. with option '-delete-analysis'")
+                    help="force operation when deleting data; e.g. with option '-delete_gl_analysis'")
     cmd_args = parser.parse_args()
 
     args_dict = vars(cmd_args)
