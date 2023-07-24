@@ -586,7 +586,7 @@ def parse_cmd_arguments():
     group = parser.add_argument_group('required (mutually exclusive) arguments')
     mxgroup_metavar_name="yaml_config_file"
     
-    args_with_yaml_config_file_path = ['delete', 'track', 'curate', 'export']
+    args_with_yaml_config_file_path = ['delete', 'track', 'curate', 'export', 'slurmquery', 'slurmcancel']
 
     mxgroup = group.add_mutually_exclusive_group(required=True)
     mxgroup.add_argument('-help', action='help')
@@ -599,6 +599,10 @@ def parse_cmd_arguments():
                     help="run interactive curation of GLs")
     mxgroup.add_argument("-export", metavar=mxgroup_metavar_name,
                     help="run batch-export of tracking results")
+    mxgroup.add_argument("-slurmquery", metavar=mxgroup_metavar_name,
+                    help="list running slurm jobs")
+    mxgroup.add_argument("-slurmcancel", metavar=mxgroup_metavar_name,
+                    help="cancel ALL slurm jobs; this option is NOT combinable with --select")
     parser.add_argument("-l", "--log", type=str,
                     help="path to the log-file for this batch-run; derived from 'yaml_config_file' and stored next to it, if not specified")
     parser.add_argument("-select", "--select", type=str,
@@ -641,7 +645,13 @@ def __main__():
         getLogger().error("Check argument 'yaml_config_file'; file not found at: {yaml_config_file_path}")
         exit(-1)
 
-    batch_operation_type = 'DELETE' if cmd_args.delete else 'TRACK' if cmd_args.track else 'CURATE' if cmd_args.curate else 'EXPORT' if cmd_args.export else 'UNDEFINED ERROR'
+    batch_operation_type = 'DELETE' if cmd_args.delete else\
+        'TRACK' if cmd_args.track else\
+        'CURATE' if cmd_args.curate else\
+        'EXPORT' if cmd_args.export else\
+        'SLURMQUERY' if cmd_args.slurmquery else\
+        'SLURMCANCEL' if cmd_args.slurmcancel else\
+        'UNDEFINED ERROR'
     
     if cmd_args.log is not None:
         log_file = Path(cmd_args.log)
@@ -669,6 +679,25 @@ def __main__():
     
     gl_dicts = parse_gls_to_process(cmd_args.yaml_config_file, gl_user_selection)
     gls_to_process_string = '\n'.join([f"Pos{gl['pos_ind']}_GL{gl['gl_ind']}" for gl in gl_dicts])
+
+    analysis_name = next(gl_dicts.__iter__())['gl_file_manager'].get_analysis_name()
+    if batch_operation_type == 'SLURMQUERY':
+        analysis_name = next(gl_dicts.__iter__())['gl_file_manager'].get_analysis_name()
+        command_string = f"squeue -u $USER | grep '{analysis_name}*'"
+        getLogger().info(f"Running command: {command_string}")
+        os.system(command_string)
+        sys.exit(0)
+
+    if batch_operation_type == 'SLURMCANCEL':
+        reply = query_yes_no("This will cancel all Slurm jobs. Do you want to continue?", "no")
+        if not reply:
+            getLogger().info("User selected 'NO': Slurm jobs were not canceled.")
+            sys.exit(0)
+        getLogger().info("User selected 'YES': Cancelling Slurm jobs.")
+        command_string = f"squeue -u $USER | grep '{analysis_name}*' | awk '{{print $1}}' | xargs scancel"
+        getLogger().info(f"Running command: {command_string}")
+        os.system(command_string)
+        sys.exit(0)
 
     if cmd_args.force:
         reply = query_yes_no("Forced run will OVERWRITE existing data (option '-f/--force'). Do you want to continue?", "no")

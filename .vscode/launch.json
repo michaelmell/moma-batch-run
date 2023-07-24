@@ -217,5 +217,23 @@
             "justMyCode": true,
             "args" : ["-f","-track","test_analysis_with_per_gl_settings.yaml"]
         },
-    ]
+        {
+            "name": "slurm-query-v0.3.0",
+            "type": "python",
+            "request": "launch",
+            "program": "moma_batch_run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args" : ["-slurmquery","test_analysis_v0.3.0.yaml"]
+        },
+        {
+            "name": "slurm-cancel-v0.3.0",
+            "type": "python",
+            "request": "launch",
+            "program": "moma_batch_run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args" : ["-slurmcancel","test_analysis_v0.3.0.yaml"]
+        },
+]
 }
