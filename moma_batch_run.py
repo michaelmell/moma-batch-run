@@ -165,7 +165,8 @@ class AnalysisMetadata(object):
             json.dump(self.value_dict, fp, indent=2, default=str)  # default=str is needed for the serialization of datetime object
 
 class GlFileManager(object):
-    _script_name = "moma_slurm_script.sh"
+    _slurm_script_name_tracking = "moma_slurm_script_tracking.sh"
+    _slurm_script_name_export = "moma_slurm_script_export.sh"
 
     """
     This class abstracts the interaction with the directory strucuture of the analysis directory.
@@ -175,8 +176,11 @@ class GlFileManager(object):
         self.gl_directory_path = Path(gl_directory_path)
         self.analysisName = analysisName
 
-    def get_slurm_script_path(self):
-        return Path(self.get_gl_track_data_path() / self._script_name)
+    def get_slurm_script_path_for_tracking(self):
+        return Path(self.get_gl_track_data_path() / self._slurm_script_name_tracking)
+
+    def get_slurm_script_path_for_export(self):
+        return Path(self.get_gl_track_data_path() / self._slurm_script_name_export)
 
     def copy_track_data_to_backup_if_it_exists(self, backup_dir_postfix):
         if self.get_gl_track_data_path().exists():
@@ -388,8 +392,14 @@ def initialize_logger(log_file):
     
 
 class MomaSlurmRunner(object):
-    def __init__(self, slurm_header: str):
+    def __init__(self, slurm_header: str, cmd_args: dict):
         self.slurm_header = slurm_header
+        self.cmd_args = cmd_args
+
+    def get_slurm_script_path(self, gl_file_manager: GlFileManager):
+        if self.cmd_args.export: return gl_file_manager.get_slurm_script_path_for_export()
+        elif self.cmd_args.track: return gl_file_manager.get_slurm_script_path_for_tracking()
+        else: raise ValueError('MomaSlurmRunner is should only be used during tracking and export stages of batch-processing.')
 
     def build_moma_run_command(self, gl_file_manager: GlFileManager, current_args_dict : dict) -> str:
         args_string = build_arg_string(current_args_dict)
@@ -416,7 +426,7 @@ class MomaSlurmRunner(object):
     def write_slurm_bash_script_to_analysis_folder(self, gl_file_manager: GlFileManager, current_args_dict : dict, gl: dict):
         if not gl_file_manager.get_gl_track_data_path().exists():
             gl_file_manager.make_gl_track_data_path()
-        script_path = gl_file_manager.get_slurm_script_path()
+        script_path = self.get_slurm_script_path(gl_file_manager)
         with open(script_path,'w') as f:
             f.write(self.build_slurm_bash_file_string(gl_file_manager, current_args_dict, gl))
 
@@ -430,14 +440,14 @@ class MomaSlurmRunner(object):
         assert current_args_dict is not None
 
         self.write_slurm_bash_script_to_analysis_folder(gl_file_manager, current_args_dict, gl)
-        self.set_script_permissions(gl_file_manager.get_slurm_script_path())
+        self.set_script_permissions(self.get_slurm_script_path(gl_file_manager))
 
         logger.info("SUBMITTING SLURM JOB:")
         logger.info("MOMA COMMAND: " + self.build_moma_run_command(gl_file_manager, current_args_dict))
         logger.info("MOMA LOG FILE: " + str(gl_file_manager.get_gl_analysis_log_file_path()))
         logger.info("LOG FILE: " + str(gl_file_manager.get_gl_analysis_log_file_path()))
 
-        self._slurm_process = subprocess.Popen(['sbatch'] + [str(gl_file_manager.get_slurm_script_path())],
+        self._slurm_process = subprocess.Popen(['sbatch'] + [str(self.get_slurm_script_path(gl_file_manager))],
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
                                         universal_newlines=True
@@ -498,7 +508,7 @@ class MomaRunner(object):
             # self._moma_process.send_signal(signal.SIGINT)
             # self._moma_process.send_signal(signal.SIGKILL)
 
-    def run(self, logger, gl_file_manager: GlFileManager, current_args_dict, gl: dict):
+    def run(self, logger, gl_file_manager: GlFileManager, current_args_dict: dict, gl: dict):
         args_string = build_arg_string(current_args_dict)
         args_string += f' -i {gl_file_manager.get_tiff_path()}'
         moma_command = f'moma {args_string}'
@@ -611,7 +621,7 @@ def get_moma_runner(cmd_args: dict, yaml_config_file_path: Path):
         use_slurm = config['slurm']
     
     if (cmd_args.track or cmd_args.export) and use_slurm:
-        return MomaSlurmRunner(SlurmHeaderProvider(use_slurm).slurm_header)
+        return MomaSlurmRunner(SlurmHeaderProvider(use_slurm).slurm_header, cmd_args)
     else:
         return MomaRunner()
 
@@ -709,7 +719,7 @@ def __main__():
                 gl_file_manager.copy_track_data_to_backup_if_it_exists(backup_postfix)
                 gl_file_manager.move_export_data_to_backup_if_it_exists(backup_postfix)
                 current_args_dict = {'multithreaded':None, 'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
-                moma_runner.run(getLogger(), gl_file_manager, current_args_dict)
+                moma_runner.run(getLogger(), gl_file_manager, current_args_dict, gl)
                 gl_file_manager.set_gl_is_curated()
             else:
                 getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already curated for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
@@ -718,7 +728,7 @@ def __main__():
                 gl_file_manager.copy_track_data_to_backup_if_it_exists(backup_postfix)
                 gl_file_manager.move_export_data_to_backup_if_it_exists(backup_postfix)
                 current_args_dict = {'headless':None, 'reload': gl_directory_path, 'analysis': gl_file_manager.get_analysis_name()}  # for running the curation we only need the GL directory path and the name of the analysis
-                moma_runner.run(getLogger(), gl_file_manager, current_args_dict)
+                moma_runner.run(getLogger(), gl_file_manager, current_args_dict, gl)
             else:
                 getLogger().warning(f"Will not perform operation {batch_operation_type} for this GL, because it was already exported for this analysis '{gl_file_manager.get_analysis_name()}' in directory: {gl_file_manager.get_gl_export_data_path()}")
         elif cmd_args.delete and cmd_args.fforce:

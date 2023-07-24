@@ -17,6 +17,17 @@ expected_header = """#!/bin/bash
 #SBATCH --time=1:00:00
 """
 
+class CmdArgsDummy(object):
+    def __init__(self, track: bool):
+        self._track = track
+
+    @property
+    def track(self):
+        self._track
+
+    @property
+    def export(self):
+        return not self._track
 
 class TestSlurmHeaderProvider():
     def test__init_without_path_argument_uses_default_header_file(self):
@@ -70,21 +81,25 @@ module load CUDA/10.0.130\n\
     expected_bash_sript_path = Path(expected_analysis_track_data_path / expected_slurm_script_name)
 
     def test__build_moma_run_command_returns_correct_command(self):
-        sut = MomaSlurmRunner(expected_header)
+        cmd_args = CmdArgsDummy(False)
+        sut = MomaSlurmRunner(expected_header, cmd_args)
         assert sut.build_moma_run_command(self.gl_file_manager, self.arg_dict) == self.expected_moma_command
 
     def test__build_slurm_bash_file_string_returns_correct_command(self):
-        sut = MomaSlurmRunner(expected_header)
+        cmd_args = CmdArgsDummy(False)
+        sut = MomaSlurmRunner(expected_header, cmd_args)
         actual = sut.build_slurm_bash_file_string(self.gl_file_manager, self.arg_dict, self.gl)
         assert self.expected_bash_script_content == actual
 
     def test__write_slurm_bash_script_to_analysis_folder__script_content_is_correct(self):
         self.gl_file_manager.get_gl_track_data_path().mkdir(parents=True, exist_ok=True)
-        sut = MomaSlurmRunner(expected_header)
+        cmd_args = CmdArgsDummy(False)
+        sut = MomaSlurmRunner(expected_header, cmd_args)
         
+        Path(self.expected_analysis_path).mkdir(parents=True, exist_ok=True)
         sut.write_slurm_bash_script_to_analysis_folder(self.gl_file_manager, self.arg_dict, self.gl)
         
-        with open(self.gl_file_manager.get_slurm_script_path(), 'r') as f:
+        with open(self.gl_file_manager.get_slurm_script_path_for_export(), 'r') as f:
             actual = f.read()
         
         shutil.rmtree(self.expected_analysis_path)

@@ -6,15 +6,15 @@ slurm: True
 preprocessing_path: /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/test_data/38__bor_20230401
 default_moma_arg:
   p: '/home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties'
-  analysis: 'test_analysis'
+  analysis: 'slurm_test_analysis'
 pos:
   1-Pos000:
     gl: {
       9: { },
-      23: {}
+      # 23: {}
     }
   1-Pos002:
     gl: {
-      21: { },
-      14: {}
+      # 21: {},
+      # 14: {}
     }

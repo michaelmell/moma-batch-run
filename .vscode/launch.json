@@ -109,6 +109,16 @@
             "args" : ["-f","-curate","test_analysis_v0.2.0.yaml"]
         },
         {
+            // force-curate test for testing YAML version 0.2.0
+            "name": "force-curate-v0.3.0",
+            "type": "python",
+            "request": "launch",
+            "program": "moma_batch_run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args" : ["-f","-curate","test_analysis_v0.3.0.yaml"]
+        },
+        {
             "name": "curate selection",
             "type": "python",
             "request": "launch",
@@ -152,6 +162,15 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args" : ["-f","-export","test_analysis_v0.2.0.yaml"]
+        },
+        {
+            "name": "force-export-v0.3.0",
+            "type": "python",
+            "request": "launch",
+            "program": "moma_batch_run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args" : ["-f","-export","test_analysis_v0.3.0.yaml"]
         },
         {
             "name": "delete",
