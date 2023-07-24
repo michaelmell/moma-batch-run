@@ -165,7 +165,7 @@ class AnalysisMetadata(object):
             json.dump(self.value_dict, fp, indent=2, default=str)  # default=str is needed for the serialization of datetime object
 
 class GlFileManager(object):
-    _slurm_script_name_tracking = "moma_slurm_script_tracking.sh"
+    _slurm_script_name_tracking = "moma_slurm_script_track.sh"
     _slurm_script_name_export = "moma_slurm_script_export.sh"
 
     """
