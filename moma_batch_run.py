@@ -621,6 +621,18 @@ def get_moma_runner(cmd_args: dict, use_slurm: bool):
     else:
         return MomaRunner()
 
+def copy_mm_properties_to_tracking_folder_and_update_current_args_dict(gl_file_manager: GlFileManager, current_args_dict: dict):
+    """Copy the mm.properties file to the analysis tracking floder and update 'current_args_dict' to use the copied file.
+    This will avoid any file locking issues, that could occur if MoMA instances tried to access the original mm.properties file concurrently.
+    """
+    if not gl_file_manager.get_gl_track_data_path().exists():
+        gl_file_manager.make_gl_track_data_path()
+    source_mm_properties = current_args_dict['p']
+    target_mm_properties = Path(gl_file_manager.get_gl_track_data_path() / 'mm.properties')
+    shutil.copyfile(source_mm_properties, target_mm_properties)
+    current_args_dict['p'] = target_mm_properties
+    return current_args_dict
+
 def __main__():
     cmd_args = parse_cmd_arguments()
 
@@ -709,6 +721,7 @@ def __main__():
             if not gl_file_manager.get_gl_is_tracked() or cmd_args.force:
                 gl_file_manager.move_track_data_to_backup_if_it_exists(backup_postfix)
                 gl_file_manager.move_export_data_to_backup_if_it_exists(backup_postfix)
+                current_args_dict = copy_mm_properties_to_tracking_folder_and_update_current_args_dict(gl_file_manager, current_args_dict)
                 current_args_dict.update({'headless':None, 'trackonly':None})
                 moma_runner.run(getLogger(), gl_file_manager, current_args_dict, gl)
                 gl_file_manager.set_gl_is_tracked()
