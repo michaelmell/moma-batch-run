@@ -2,7 +2,7 @@
 
 from ctypes import ArgumentError
 import json
-from pathlib import Path
+from pathlib import Path, PosixPath
 from datetime import datetime
 import os
 import stat
@@ -14,6 +14,7 @@ import argparse
 from glob import glob
 import logging
 import subprocess
+from typing import Union
 
 import yaml
 from yaml.loader import SafeLoader
@@ -470,17 +471,23 @@ class SlurmHeaderProvider(object):
 #SBATCH --time=1:00:00
 """
 
-    def __init__(self, slurm_header_file: Path = None): # here I can pass the slurm header later on;
+    def __init__(self, slurm_header_file: Union[bool, Path] = True): # here I can pass the slurm header later on;
         """
         slurm_header_file: possible values:
             - [PATH]: User specified a path to a slurm header file.
+            - Use the default header/header-file, if no constructor argument is passed.
         """
-        if not slurm_header_file:
+        if type(slurm_header_file) == bool:
+            if not self._default_slurm_header_path.exists(): # Create default header file, if it does not exist using the stored default header.
+                with open(self._default_slurm_header_path, 'w') as f:
+                    f.write(self._slurm_header)
             self.slurm_header_file = self._default_slurm_header_path
-        else:
-            with open(slurm_header_file) as infile: # test if file exists; if not raise IOError
-                pass
+        elif type(slurm_header_file) == PosixPath:
+            if not slurm_header_file.exists():
+                raise IOError(f'Provided slurm header file does not exist: {slurm_header_file}')
             self.slurm_header_file = slurm_header_file
+        else:
+            raise ValueError(f"Unsupported value type for arg 'slurm_header_file': {type(slurm_header_file)}")
 
     def write_slurm_header_to_home_if_missing(self):
         with open(self._default_slurm_header_path, "w") as f:
@@ -615,7 +622,7 @@ def parse_cmd_arguments():
             cmd_args.yaml_config_file = Path(args_dict[arg_name]) # get YAML config file path from the arguments it as value
     return cmd_args
 
-def get_moma_runner(cmd_args: dict, use_slurm: bool):
+def get_moma_runner(cmd_args: dict, use_slurm: Union[bool, Path]):
     if (cmd_args.track or cmd_args.export) and use_slurm:
         return MomaSlurmRunner(SlurmHeaderProvider(use_slurm).slurm_header, cmd_args)
     else:
