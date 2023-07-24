@@ -488,10 +488,8 @@ class SlurmHeaderProvider(object):
             self.slurm_header_file = slurm_header_file
         else:
             raise ValueError(f"Unsupported value type for arg 'slurm_header_file': {type(slurm_header_file)}")
-
-    def write_slurm_header_to_home_if_missing(self):
-        with open(self._default_slurm_header_path, "w") as f:
-            f.write(self.get_default_slurm_header())
+        with open(self.slurm_header_file, 'r') as f:
+            self._slurm_header = f.read()
 
     @property
     def slurm_header(self):
@@ -703,7 +701,15 @@ def __main__():
         getLogger().info("ERROR: Option '-delete-analysis' must be combined with option '-fforce'.")
         sys.exit(-1)
 
-    getLogger().info("BATCH RUN STARTED.")
+    with open(yaml_config_file_path) as f:
+        config = yaml.load(f, Loader=SafeLoader)
+        use_slurm = config['slurm']
+        if type(use_slurm) == str: # config['slurm'] is path to header file; convert it to path object
+            use_slurm = Path(use_slurm)
+
+    if not use_slurm: getLogger().info("BATCH RUN STARTED.")
+    else: getLogger().info("START DISPATCHING SLURM JOBS.")
+
     print_batch_version_to_log()  # print version to the log-file for later reference
     getLogger().info(f"Run type: {batch_operation_type}")
     batch_command_string = ' '.join(sys.argv)
@@ -711,10 +717,6 @@ def __main__():
     backup_postfix = "__BKP_" + time_stamp_of_run
     getLogger().info(f"Any backups created during this run are appended with postfix: {backup_postfix}")
     
-    with open(yaml_config_file_path) as f:
-        config = yaml.load(f, Loader=SafeLoader)
-        use_slurm = config['slurm']
-
     for gl in gl_dicts:
         gl_directory_path = gl['gl_path']
         gl_file_manager = gl['gl_file_manager']
@@ -760,13 +762,13 @@ def __main__():
     if abortObj.abortSignaled:
         getLogger().info("BATCH RUN ABORTED.")
     else:
-        getLogger().info("BATCH RUN FINISHED.")
+        if not use_slurm: getLogger().info("BATCH RUN FINISHED.")
+        else: getLogger().info("FINISHED DISPATCHING SLURM JOBS.")
 
     if use_slurm:
         analysis_name = next(gl_dicts.__iter__())['gl_file_manager'].get_analysis_name()
         query_command_string = f"squeue -u $USER | grep '{analysis_name}*'"
         cancel_command_string = f"squeue -u $USER | grep '{analysis_name}*' | awk '{{print $1}}' | xargs scancel"
-        getLogger().info("Running with Slurm.")
         getLogger().info("To QUERY slurm jobs run:")
         getLogger().info(query_command_string)
         getLogger().info("To CANCEL slurm jobs run:")
