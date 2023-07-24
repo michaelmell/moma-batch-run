@@ -619,11 +619,7 @@ def parse_cmd_arguments():
             cmd_args.yaml_config_file = Path(args_dict[arg_name]) # get YAML config file path from the arguments it as value
     return cmd_args
 
-def get_moma_runner(cmd_args: dict, yaml_config_file_path: Path):
-    with open(yaml_config_file_path) as f:
-        config = yaml.load(f, Loader=SafeLoader)
-        use_slurm = config['slurm']
-    
+def get_moma_runner(cmd_args: dict, use_slurm: bool):
     if (cmd_args.track or cmd_args.export) and use_slurm:
         return MomaSlurmRunner(SlurmHeaderProvider(use_slurm).slurm_header, cmd_args)
     else:
@@ -725,6 +721,10 @@ def __main__():
     backup_postfix = "__BKP_" + time_stamp_of_run
     getLogger().info(f"Any backups created during this run are appended with postfix: {backup_postfix}")
     
+    with open(yaml_config_file_path) as f:
+        config = yaml.load(f, Loader=SafeLoader)
+        use_slurm = config['slurm']
+
     for gl in gl_dicts:
         gl_directory_path = gl['gl_path']
         gl_file_manager = gl['gl_file_manager']
@@ -732,7 +732,7 @@ def __main__():
         args_dict = gl['moma_arg']
         current_args_dict = args_dict.copy()
         
-        moma_runner = get_moma_runner(cmd_args, yaml_config_file_path)
+        moma_runner = get_moma_runner(cmd_args, use_slurm)
 
         if cmd_args.track:
             if not gl_file_manager.get_gl_is_tracked() or cmd_args.force:
@@ -770,6 +770,16 @@ def __main__():
         getLogger().info("BATCH RUN ABORTED.")
     else:
         getLogger().info("BATCH RUN FINISHED.")
+
+    if use_slurm:
+        analysis_name = next(gl_dicts.__iter__())['gl_file_manager'].get_analysis_name()
+        query_command_string = f"squeue -u $USER | grep '{analysis_name}*'"
+        cancel_command_string = f"squeue -u $USER | grep '{analysis_name}*' | awk '{{print $1}}' | xargs scancel"
+        getLogger().info("Running with Slurm.")
+        getLogger().info("To QUERY slurm jobs run:")
+        getLogger().info(query_command_string)
+        getLogger().info("To CANCEL slurm jobs run:")
+        getLogger().info(cancel_command_string)
 
 if __name__ == "__main__":
     __main__()
