@@ -704,9 +704,12 @@ def __main__():
 
     with open(yaml_config_file_path) as f:
         config = yaml.load(f, Loader=SafeLoader)
-        use_slurm = config['slurm']
-        if type(use_slurm) == str: # config['slurm'] is path to header file; convert it to path object
-            use_slurm = Path(use_slurm)
+        if 'slurm' in config:
+            use_slurm = config['slurm']
+            if type(use_slurm) == str: # config['slurm'] is path to header file; convert it to path object
+                use_slurm = Path(use_slurm)
+        else:
+            use_slurm = False
 
     if not use_slurm: getLogger().info("BATCH RUN STARTED.")
     else: getLogger().info("START DISPATCHING SLURM JOBS.")
