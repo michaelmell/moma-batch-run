@@ -10,11 +10,12 @@ def setup_function(function):
     print("setting up failed for: ", function)
 
 expected_header = """#!/bin/bash
-#SBATCH --mem=16G
+#SBATCH --mem=32G
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
-#SBATCH --qos=1day
-#SBATCH --time=1:00:00
+#SBATCH --cpus-per-task=1
+#SBATCH --qos=30min
+#SBATCH --time=00:29:59
+#SBATCH --open-mode=append
 """
 
 class CmdArgsDummy(object):

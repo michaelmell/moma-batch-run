@@ -217,5 +217,14 @@
             "justMyCode": true,
             "args" : ["-f","-track","test_analysis_with_per_gl_settings.yaml"]
         },
+        {
+            "name": "print-analysis-paths-v0.3.0",
+            "type": "python",
+            "request": "launch",
+            "program": "moma_batch_run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args" : ["-print_analysis_path","test_analysis_v0.3.0.yaml"]
+        },
     ]
 }

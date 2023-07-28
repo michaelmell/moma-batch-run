@@ -592,7 +592,7 @@ def parse_cmd_arguments():
     group = parser.add_argument_group('required (mutually exclusive) arguments')
     mxgroup_metavar_name="yaml_config_file"
     
-    args_with_yaml_config_file_path = ['delete', 'track', 'curate', 'export']
+    args_with_yaml_config_file_path = ['delete', 'track', 'curate', 'export', 'print_analysis_path']
 
     mxgroup = group.add_mutually_exclusive_group(required=True)
     mxgroup.add_argument('-help', action='help')
@@ -605,6 +605,8 @@ def parse_cmd_arguments():
                     help="run interactive curation of GLs")
     mxgroup.add_argument("-export", metavar=mxgroup_metavar_name,
                     help="run batch-export of tracking results")
+    mxgroup.add_argument("-print_analysis_path", metavar=mxgroup_metavar_name,
+                    help="print absolute paths to analysis folders for GLs defined in the YAML file")
     parser.add_argument("-l", "--log", type=str,
                     help="path to the log-file for this batch-run; derived from 'yaml_config_file' and stored next to it, if not specified")
     parser.add_argument("-select", "--select", type=str,
@@ -639,6 +641,11 @@ def copy_mm_properties_to_tracking_folder_and_update_current_args_dict(gl_file_m
     current_args_dict['p'] = target_mm_properties
     return current_args_dict
 
+def print_analysis_path(gl_dicts: dict):
+    for gl in gl_dicts:
+        gl_file_manager = gl['gl_file_manager']
+        console_stdout.write(str(gl_file_manager.get_gl_analysis_path())+'\n')
+
 def __main__():
     cmd_args = parse_cmd_arguments()
 
@@ -655,7 +662,7 @@ def __main__():
         getLogger().error("Check argument 'yaml_config_file'; file not found at: {yaml_config_file_path}")
         exit(-1)
 
-    batch_operation_type = 'DELETE' if cmd_args.delete else 'TRACK' if cmd_args.track else 'CURATE' if cmd_args.curate else 'EXPORT' if cmd_args.export else 'UNDEFINED ERROR'
+    batch_operation_type = 'DELETE' if cmd_args.delete else 'TRACK' if cmd_args.track else 'CURATE' if cmd_args.curate else 'EXPORT' if cmd_args.export else 'PRINT_ANALYSIS_PATH' if cmd_args.print_analysis_path else 'UNDEFINED ERROR'
     
     if cmd_args.log is not None:
         log_file = Path(cmd_args.log)
@@ -683,6 +690,10 @@ def __main__():
     
     gl_dicts = parse_gls_to_process(cmd_args.yaml_config_file, gl_user_selection)
     gls_to_process_string = '\n'.join([f"Pos{gl['pos_ind']}_GL{gl['gl_ind']}" for gl in gl_dicts])
+
+    if cmd_args.print_analysis_path:
+        print_analysis_path(gl_dicts)
+        sys.exit(0)
 
     if cmd_args.force:
         reply = query_yes_no("Forced run will OVERWRITE existing data (option '-f/--force'). Do you want to continue?", "no")
