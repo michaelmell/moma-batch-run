@@ -240,10 +240,10 @@ class GlFileManager(object):
         self.get_gl_track_data_path().mkdir(parents=True, exist_ok=True)
 
     def get_gl_analysis_log_file_path(self) -> Path:
-        return self.get_gl_track_data_path().joinpath('moma.log')
+        return self.get_gl_track_data_path().joinpath('moma_slurm_output.log')
 
     def get_gl_analysis_error_log_file_path(self) -> Path:
-        return self.get_gl_track_data_path().joinpath('moma_error.log')
+        return self.get_gl_track_data_path().joinpath('moma_slurm_error.log')
 
     def get_gl_is_curated(self) -> bool:
         return self.__get_analysis_metadata().curated

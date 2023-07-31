@@ -70,8 +70,8 @@ class TestSlurmRunner():
     expected_moma_command = f"xvfb-run moma -p /home/micha/Documents/01_work/15_moma_notes/02_moma_development/feature/20220801-implement-python-batch-processing-script/mm.properties -analysis test_analysis -headless -trackonly -i {str(path_to_gl)}/20230401_nat_iso_carbon_med3_1_MMStack__1-Pos000_GL9.tif"
     expected_bash_script_content = f"{expected_header}\n\
 #SBATCH --job-name=test_analysis__1-Pos000_GL9\n\
-#SBATCH --output=test_data/gl_test_folder/1-Pos000_GL9/test_analysis/track_data__test_analysis/moma.log\n\
-#SBATCH --error=test_data/gl_test_folder/1-Pos000_GL9/test_analysis/track_data__test_analysis/moma_error.log\n\
+#SBATCH --output=test_data/gl_test_folder/1-Pos000_GL9/test_analysis/track_data__test_analysis/moma_slurm_output.log\n\
+#SBATCH --error=test_data/gl_test_folder/1-Pos000_GL9/test_analysis/track_data__test_analysis/moma_slurm_error.log\n\
 \n\
 module load CUDA/10.0.130\n\
 \n\
