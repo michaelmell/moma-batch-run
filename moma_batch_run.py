@@ -703,14 +703,14 @@ def __main__():
         getLogger().info("Performing forced run.")
 
     if cmd_args.delete and cmd_args.fforce:
-        reply = query_yes_no(f"You are about to DELETE the analysis-folders in the GLs listed below. Do you REALLY want to continue? ", "no", trailing_string=f"\nSelected GLs:\n{gls_to_process_string}")
+        reply = query_yes_no(f"\nSelected GLs:\n{gls_to_process_string}\nYou are about to DELETE the analysis-folders in the GLs listed above. Do you REALLY want to continue? ", "no")
         if not reply:
             getLogger().info("Aborting deletion run, because user replied 'no'. ")
             sys.exit(-1)
         getLogger().info("Performing forced run.")
     
     if cmd_args.delete and not cmd_args.fforce:
-        getLogger().info("ERROR: Option '-delete-analysis' must be combined with option '-fforce'.")
+        getLogger().info("ERROR: Option '-delete-analysis' must be combined with option '-ff'.")
         sys.exit(-1)
 
     with open(yaml_config_file_path) as f:
