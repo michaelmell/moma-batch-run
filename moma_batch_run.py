@@ -710,7 +710,7 @@ def __main__():
         getLogger().info("Performing forced run.")
     
     if cmd_args.delete and not cmd_args.fforce:
-        getLogger().info("ERROR: Option '-delete-analysis' must be combined with option '-ff'.")
+        getLogger().info("ERROR: Option '-delete_gl_analysis' must be combined with option '-ff'.")
         sys.exit(-1)
 
     with open(yaml_config_file_path) as f:
