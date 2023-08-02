@@ -416,13 +416,15 @@ class MomaSlurmRunner(object):
         slurm_job_id = f"#SBATCH --job-name={current_args_dict['analysis']}__{gl['pos_ind']}_GL{gl['gl_ind']}"
         slurm_stdout_output = f"#SBATCH --output={gl_file_manager.get_gl_analysis_log_file_path()}"
         slurm_stderr_output = f"#SBATCH --error={gl_file_manager.get_gl_analysis_error_log_file_path()}"
-        cuda_module_loading = "module load CUDA/10.0.130"
+        lmod_string1 = "module use /scicore/home/nimwegen/GROUP/Moma/MM_Analysis/builds/moma_v0.9.5-ce6d4a08_20230726__TESTING_TMP_20230801/Modules"
+        lmod_string2 = "ml MoMA"
         bash_file_string = f'{self.slurm_header}\
 \n{slurm_job_id}\
 \n{slurm_stdout_output}\
 \n{slurm_stderr_output}\
 \n\
-\n{cuda_module_loading}\
+\n{lmod_string1}\
+\n{lmod_string2}\
 \n\
 \n{moma_command}\n'
         return bash_file_string
