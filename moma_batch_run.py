@@ -240,10 +240,13 @@ class GlFileManager(object):
         self.get_gl_track_data_path().mkdir(parents=True, exist_ok=True)
 
     def get_gl_analysis_log_file_path(self) -> Path:
-        return self.get_gl_track_data_path().joinpath('moma_slurm_output.log')
+        return self.get_gl_track_data_path().joinpath('moma_slurm_output__%j.log')
 
     def get_gl_analysis_error_log_file_path(self) -> Path:
-        return self.get_gl_track_data_path().joinpath('moma_slurm_error.log')
+        return self.get_gl_track_data_path().joinpath('moma_slurm_error__%j.log')
+
+    def get_xvfb_error_log_file_path(self) -> Path:
+        return self.get_gl_track_data_path().joinpath('xvfb_error.log')
 
     def get_gl_is_curated(self) -> bool:
         return self.__get_analysis_metadata().curated
@@ -405,7 +408,7 @@ class MomaSlurmRunner(object):
     def build_moma_run_command(self, gl_file_manager: GlFileManager, current_args_dict : dict) -> str:
         args_string = build_arg_string(current_args_dict)
         args_string += f' -i {gl_file_manager.get_tiff_path()}'
-        moma_command = f'xvfb-run moma {args_string}'
+        moma_command = f'xvfb-run -e {gl_file_manager.get_xvfb_error_log_file_path()} moma {args_string}'
         return moma_command
 
     def build_slurm_bash_file_string(self, gl_file_manager: GlFileManager, current_args_dict : dict, gl: dict):
