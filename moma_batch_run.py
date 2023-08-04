@@ -239,10 +239,13 @@ class GlFileManager(object):
     def make_gl_track_data_path(self):
         self.get_gl_track_data_path().mkdir(parents=True, exist_ok=True)
 
-    def get_gl_analysis_log_file_path(self) -> Path:
+    def get_gl_analysis_moma_log_file_path(self) -> Path:
+        return self.get_gl_track_data_path().joinpath('moma.log')
+
+    def get_gl_analysis_slurm_output_file_path(self) -> Path:
         return self.get_gl_track_data_path().joinpath('moma_slurm_output__%j.log')
 
-    def get_gl_analysis_error_log_file_path(self) -> Path:
+    def get_gl_analysis_slurm_error_log_file_path(self) -> Path:
         return self.get_gl_track_data_path().joinpath('moma_slurm_error__%j.log')
 
     def get_xvfb_error_log_file_path(self) -> Path:
@@ -414,8 +417,8 @@ class MomaSlurmRunner(object):
     def build_slurm_bash_file_string(self, gl_file_manager: GlFileManager, current_args_dict : dict, gl: dict):
         moma_command = self.build_moma_run_command(gl_file_manager, current_args_dict)
         slurm_job_id = f"#SBATCH --job-name={current_args_dict['analysis']}__{gl['pos_ind']}_GL{gl['gl_ind']}"
-        slurm_stdout_output = f"#SBATCH --output={gl_file_manager.get_gl_analysis_log_file_path()}"
-        slurm_stderr_output = f"#SBATCH --error={gl_file_manager.get_gl_analysis_error_log_file_path()}"
+        slurm_stdout_output = f"#SBATCH --output={gl_file_manager.get_gl_analysis_slurm_output_file_path()}"
+        slurm_stderr_output = f"#SBATCH --error={gl_file_manager.get_gl_analysis_slurm_error_log_file_path()}"
         lmod_string1 = "module use /scicore/home/nimwegen/GROUP/Moma/MM_Analysis/builds/moma_v0.9.5-ce6d4a08_20230726__TESTING_TMP_20230801/Modules"
         lmod_string2 = "ml MoMA"
         bash_file_string = f'{self.slurm_header}\
@@ -450,8 +453,9 @@ class MomaSlurmRunner(object):
 
         logger.info("SUBMITTING SLURM JOB:")
         logger.info("MOMA COMMAND: " + self.build_moma_run_command(gl_file_manager, current_args_dict))
-        logger.info("MOMA LOG FILE: " + str(gl_file_manager.get_gl_analysis_log_file_path()))
-        logger.info("LOG FILE: " + str(gl_file_manager.get_gl_analysis_log_file_path()))
+        logger.info("MOMA LOG FILE: " + str(gl_file_manager.get_gl_analysis_moma_log_file_path()))
+        logger.info("SLURM OUTPUT LOG FILE: " + str(gl_file_manager.get_gl_analysis_slurm_output_file_path()))
+        logger.info("SLURM ERROR LOG FILE: " + str(gl_file_manager.get_gl_analysis_slurm_error_log_file_path()))
 
         self._slurm_process = subprocess.Popen(['sbatch'] + [str(self.get_slurm_script_path(gl_file_manager))],
                                         stdout=subprocess.PIPE,
@@ -525,7 +529,7 @@ class MomaRunner(object):
         moma_command = f'moma {args_string}'
         logger.info("RUN MOMA: " + moma_command)
         
-        log_path = gl_file_manager.get_gl_analysis_log_file_path()
+        log_path = gl_file_manager.get_gl_analysis_moma_log_file_path()
         logger.info("LOG MOMA: " + str(log_path))
 
         # old_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
