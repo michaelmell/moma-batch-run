@@ -423,8 +423,7 @@ class MomaSlurmRunner(object):
 """if command -v module &> /dev/null; then
    module purge
    module load MoMA
-fi
-"""
+fi"""
         bash_file_string = f'{self.slurm_header}\
 \n{slurm_job_id}\
 \n{slurm_stdout_output}\
