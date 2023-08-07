@@ -420,7 +420,7 @@ class MomaSlurmRunner(object):
         slurm_stdout_output = f"#SBATCH --output={gl_file_manager.get_gl_analysis_slurm_output_file_path()}"
         slurm_stderr_output = f"#SBATCH --error={gl_file_manager.get_gl_analysis_slurm_error_log_file_path()}"
         lmod_string = \
-"""if command -v docker &> /dev/null; then"
+"""if command -v module &> /dev/null; then
    module purge
    module load MoMA
 fi
