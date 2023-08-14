@@ -694,7 +694,7 @@ def __main__():
     running_on_selection = cmd_args.select is not None
     gl_user_selection = {}
     if running_on_selection:
-        if cmd_args.select is "":
+        if cmd_args.select == "":
             getLogger().error("Value is empty for option '--select'.")
             sys.exit(-1)
         gl_user_selection = parse_gl_selection_string(cmd_args.select)
