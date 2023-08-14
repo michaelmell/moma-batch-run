@@ -11,3 +11,6 @@ test_ctrl_c.py
 test_analysis_run.sh
 mm.properties
 test_data/
+build/
+dist/
+moma_batch_run.spec
