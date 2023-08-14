@@ -453,7 +453,7 @@ fi"""
         self.write_slurm_bash_script_to_analysis_folder(gl_file_manager, current_args_dict, gl)
         self.set_script_permissions(self.get_slurm_script_path(gl_file_manager))
 
-        logger.info("SUBMITTING SLURM JOB:")
+        logger.info("SUBMITTING AS SLURM JOB: " + str(self.get_slurm_script_path(gl_file_manager)))
         logger.info("MOMA COMMAND: " + self.build_moma_run_command(gl_file_manager, current_args_dict))
         logger.info("MOMA LOG FILE: " + str(gl_file_manager.get_gl_analysis_moma_log_file_path()))
         logger.info("SLURM OUTPUT LOG FILE: " + str(gl_file_manager.get_gl_analysis_slurm_output_file_path()))
