@@ -419,17 +419,10 @@ class MomaSlurmRunner(object):
         slurm_job_id = f"#SBATCH --job-name={current_args_dict['analysis']}__{gl['pos_ind']}_GL{gl['gl_ind']}"
         slurm_stdout_output = f"#SBATCH --output={gl_file_manager.get_gl_analysis_slurm_output_file_path()}"
         slurm_stderr_output = f"#SBATCH --error={gl_file_manager.get_gl_analysis_slurm_error_log_file_path()}"
-        lmod_string = \
-"""if command -v module &> /dev/null; then
-   module purge
-   module load MoMA
-fi"""
         bash_file_string = f'{self.slurm_header}\
 \n{slurm_job_id}\
 \n{slurm_stdout_output}\
 \n{slurm_stderr_output}\
-\n\
-\n{lmod_string}\
 \n\
 \n{moma_command}\n'
         return bash_file_string
