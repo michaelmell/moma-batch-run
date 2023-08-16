@@ -14,3 +14,5 @@ test_data/
 build/
 dist/
 moma_batch_run.spec
+build_with_pyinstaller.sh
+standalone_build/
