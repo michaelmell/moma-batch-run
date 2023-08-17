@@ -20,7 +20,7 @@ import yaml
 from yaml.loader import SafeLoader
 
 
-batch_script_version = "0.5.0"
+batch_script_version = "0.5.1"
 program_name='moma_batch_run'
 
 def print_batch_version_to_log():
