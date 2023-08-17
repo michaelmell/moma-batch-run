@@ -420,7 +420,7 @@ class MomaSlurmRunner(object):
         slurm_stdout_output = f"#SBATCH --output={gl_file_manager.get_gl_analysis_slurm_output_file_path()}"
         slurm_stderr_output = f"#SBATCH --error={gl_file_manager.get_gl_analysis_slurm_error_log_file_path()}"
         bash_file_string = f'{self.slurm_header}\
-\n{slurm_job_id}\
+{slurm_job_id}\
 \n{slurm_stdout_output}\
 \n{slurm_stderr_output}\
 \n\
