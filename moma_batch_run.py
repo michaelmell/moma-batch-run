@@ -341,10 +341,12 @@ def add_moma_args(gl_ind, gl_entry, pos_ind, pos_entry, config):
     return gl_entry
 
 def calculate_log_file_path(yaml_config_file_path: Path, batch_operation_type: str):
-    log_folder = Path(os.path.join(yaml_config_file_path.stem + '_logs'))
-    if not log_folder.exists():
-        os.makedirs(log_folder)
-    return Path(os.path.join(log_folder, yaml_config_file_path.parent,yaml_config_file_path.stem + '_' + batch_operation_type.lower() + '.log'))
+    if not yaml_config_file_path.is_absolute():
+        yaml_config_file_path = Path(os.getcwd() / yaml_config_file_path)
+    log_folder_path = Path(yaml_config_file_path.parent / f'{yaml_config_file_path.stem}__logs')
+    if not log_folder_path.exists():
+        os.makedirs(log_folder_path)
+    return Path(log_folder_path / f'{yaml_config_file_path.stem}__{batch_operation_type.lower()}.log')
 
 def getLogger() -> logging.Logger:
     return logging.getLogger('default')
